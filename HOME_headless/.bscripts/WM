@@ -11,6 +11,7 @@ if [[ $arg1 == "setsynergycip" || $arg1 == "set" ]]; then
     fi
 elif [[ $arg1 == "fix" ]]; then
     kill -USR1 $(pgrep ^xcompmgr$) 
+    exit
 fi
 
 
