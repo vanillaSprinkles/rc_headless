@@ -1,0 +1,100 @@
+#!/bin/bash
+
+## the best way to startx with a specified window manager
+## next script to allow 2 parameters, one is screen, other is WM; if no screen then first is WM
+# screen hide/detach wm
+# function x
+
+## wm checker
+wms=$(pacman -Qs window manager | /usr/bin/grep "^local" | sed "s/^local\///" | awk '{ if ($1 != "obconf" && $1 != "screen" && $1 != "screen-vs" && $1 != "xcb-util-wm"  && $1 != "wmctrl-with-undecorated-support" ) print $1}')
+for i in $wms; do
+  if [[ "$i" == "i3-git" ]]; then wms="${wms} i3"; fi
+  if [[ "$i" == "wmii-hg" ]]; then wms="${wms} wmii"; fi
+done
+
+
+ReD='\033[0;31m';    GrN='\033[0;32m';    DeF='\033[0m';
+
+startx_helper () {
+
+scr_hid=0;    wm=0;    mode=0
+if [[ "${1}" == "screen" || "${1}" == "hide" ]]; then
+  scr_hid=1
+elif [[ "${2}" == "screen" || "${2}" == "hide" ]]; then
+  scr_hid=2
+fi
+scr_hid=0
+
+# assign wm/mode appropriate text values
+#wms=`pacman -Qs window manager | /usr/bin/grep "^local" | sed "s/^local\///" | awk '{ if ($1 != "obconf" && $1 != "screen" && $1 != "screen-vs" && $1 != "xcb-util-wm") print $1}'`
+#wms=startx_helper_wm_check
+match=0
+if [[ $scr_hid == 1 ]]; then
+  mode=${1};	wm=${2};
+  for i in $wms; do	if [[ "$i" == "${wm}" ]]; then match=1; fi;    done
+  if (( $match==0 )); then
+    echo -e "${ReD}x: invalid operand\n${DeF}Useage: x  <check>  |  <window manger> [hide | screen]"
+    echo -en "  Window Managers: ";  for x in $wms; do   echo -e -n "${x}  ";	done;	echo -e "${DeF}"
+    return
+  fi
+elif [[ $scr_hid == 2 ]]; then
+  mode=${2};	wm=${1};
+  for i in $wms; do	if [[ "$i" == "${wm}" ]]; then match=1; fi;    done
+  if (( $match==0 )); then
+    # glitches here
+    echo -e "${ReD}x: invalid  window manager: '${wm}', exiting.'${DeF}"
+    echo -en "  Window Managers: ";  for x in $wms; do   echo -e -n "${x}  ";	done;	echo -e "${DeF}"
+    return
+  fi
+else
+  for i in $wms; do	if [[ "$i" == "${1}" ]]; then match=1; fi;    done
+  if (( $match==0 )); then
+    for i in $wms; do	if [[ "$i" == "${2}" ]]; then match=1; fi;    done
+    if (( $match==0)); then
+      echo -e "${ReD}x: invalid operand\n${DeF}Useage: x  <check>  |  <window manger> [hide | screen]"
+      echo -en "  Window Managers: ";  for x in $wms; do   echo -e -n "${x}  ";	done;	echo -e "${DeF}"
+      return
+    else
+      wm=${2};	    mode=3  # wm in {2} and error in {1}
+      echo -e "warning: invalid run mode\n${DeF}  use either: 'hide' or 'screen' or neither"
+    fi
+  else
+    wm=${1};  mode=0;
+    if [ ! -z ${2} ]; then echo -e "warning: invalid run mode\n${DeF}  use either: 'hide' or 'screen' or neither"; fi
+  fi
+ fi
+
+if [[ "${wm}" == 'i3-git' ]]; then
+  wm="i3"
+else
+  if [[ "${wm}" == 'wmii-hg' ]]; then
+    wm="wmii"
+  fi
+fi
+
+# deal with the .xinitrc file
+if [ ! -h $HOME/.xinitrc ]; then
+  if [ -f $HOME/.xinitrc ]; then
+    datime=`date '+%Y-%m-%d_%H.%M.%S'`;	    mv $HOME/.xinitrc ${HOME}/.xinitrc_${datime}
+    echo -e "${ReD}${HOME}.xinitrc file found, renaming to: ${HOME}/.xinitrc_${datime}\n${GrN}Use ~/.xinitrc.extra for additional settings${DeF}"
+  fi;
+  touch /tmp/${USER}_xinitrc;	ln -s /tmp/${USER}_xinitrc .xinitrc
+fi
+touch ${HOME}/.xinitrc.extra
+
+/bin/cp -f ${HOME}/.xinitrc.extra /tmp/${USER}_xinitrc;    echo -e "\n\nexec ${wm}" >> /tmp/${USER}_xinitrc
+
+case ${mode} in
+  hide)
+    /usr/bin/startx 1>&- 2>&- &	    ;;
+    screen)
+    screen -d -m -S "startx_${wm}" /usr/bin/startx	    ;;
+  *)
+    /usr/bin/startx	    ;;
+esac
+
+} # end startx_helper
+
+[[ "$1" == "check" ]] &&   echo -en "" &&  for x in $wms; do   echo -e -n "${x}  ";     done &&  echo -e "${DeF}" && exit
+
+startx_helper "${@}"

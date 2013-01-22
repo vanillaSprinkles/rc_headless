@@ -1,0 +1,150 @@
+#!/bin/bash
+
+#if [ "${i}" == "" ]; then
+#    echo "Usage: .ScreenZ.sh {root|irssi|ncdc|wweather}" >&2
+#    exit
+#fi
+
+
+
+#echo -e " $CLR_GREEN 033[0;31m $R '$1' '$2' $CR_RED $HOME  $CR_GREEN green "
+
+# forever prompt user to login as root
+ReD='\033[0;31m'
+GrN='\033[0;32m'
+DeF='\033[0m'
+
+
+
+for i
+do
+
+
+if [ "${i}" == "root" ]; then
+    ROOTCNT=2
+    echo -e "$ReD""Enter the root password!\033[0m"
+    su - root;
+    while [ $ROOTCNT ]; do 
+	      echo -e "$GrN""Go #$ROOTCNT""$ReD"" Enter the real root pass:""$DeF"
+	      su - root; 
+	      let ROOTCNT++;
+    done
+fi
+
+
+if [ "${i}" == "irssi" ]; then
+    while [ 1 ]; do 
+        PWD="${HOME}/.irssi"
+	      /usr/bin/irssi
+	      #sleep 5s 
+	      ping -c 5 127.0.0.1 > /dev/null
+    done
+fi
+
+
+
+
+if [ "${i}" == "ncdc" ]; then
+    while [ 1 ]; do 
+        PWD="${HOME}/.ncdc"
+	      /usr/bin/ncdc
+	      #sleep 5s 
+	      ping -c 5 127.0.0.1 > /dev/null
+    done
+fi
+
+
+
+if [ "${i}" == "wweather" ]; then
+    while [ 1 ]; do
+        PWD="${HOME}/cliweather-ad0aa95"
+        clear
+        echo "Home: "
+        ./cliweather 95472
+        echo -e "\nSR: "
+        ./cliweather 95403
+        sleep 30s
+    done
+fi
+
+
+
+if [ "${i}" == "WM" ]; then
+    while [ 1 ]; do
+	WMFILE="/tmp/bscripts/${USER}-WM.tmp"
+        if [[ -f $WMFILE ]]; then
+	    echo -e "executing $(cat $WMFILE) with user ${USER} in 'tty' mode via ssh -tt:"
+#	    ssh -tt localhost "source ${HOME}/.bash_profile && ${HOME}/.bscripts/x $(cat ${WMFILE} )"
+	    ${HOME}/.bscripts/x $(cat $WMFILE)
+	else 
+	    echo "no file $WMFILE"
+	    exit
+	fi
+        clear
+        sleep 13s
+    done
+fi
+
+
+if [ "${i}" == "synergyc" ]; then
+    while [ 1 ]; do
+        if [[ -f  ${HOME}/.config/bscripts/WM.$(hostname).synergyc ]]; then
+	    CFG=( $(cat ~/.config/bscripts/WM.$(hostname).synergyc) )
+	    IP=${CFG[0]}
+	    DBG=${CFG[1]}
+	    [[ -z $DBG ]] && DBG="NOTE"
+            echo -en "synergyc -f -d $DBG $IP\n\n"
+            for id in $(pgrep synergyc); do kill -9 $id; done
+	    synergyc -f -d $DBG $IP
+	    ## ERROR WARNING NOTE INFO DEBUG DEBUG1 DEBUG2
+	else 
+	    echo "no file ${HOME}/.config/bscritps/WM.$(hostname).synergyc"
+	    echo "  generate with: WM setsynergyc <ip> <debug-level>"
+#	    exit
+	fi
+        clear
+        sleep 2s
+    done
+fi
+
+
+if [ "${i}" == "xcompmgr" ] || [ "${i}" == "transset" ]; then
+    mkdir -p /tmp/bscripts
+    echo 1 > /tmp/bscripts/screenAppz.xcompmgr
+    while [ 1 ]; do
+        for id in $(pgrep ${i}); do kill -9 $id; done
+        if [ $(cat /tmp/bscripts/screenAppz.xcompmgr 2> /dev/null) ]; then
+            if [ "$(xcompmgr -c -d :0 2>&1)" == "Can't open display" ]; then
+		sleep 2s
+	    fi
+	else
+            sleep 2s
+        fi
+    done
+fi
+
+
+if [ "${i}" == "devilspie" ]; then
+
+    while [ 1 ]; do
+        for id in $(pgrep ${i}); do kill -9 $id; done
+	DISPLAY=":0"
+	export DISPLAY
+	devilspie -a
+	sleep 2s
+	echo -e "\n\n\n"
+    done
+fi
+
+
+#LINES=`ps aux | grep "${USER}" | grep 'irssi'`
+#printf "%s\n" "${LINES[1]}"
+
+
+
+
+
+done
+
+
+

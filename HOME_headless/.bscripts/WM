@@ -1,0 +1,30 @@
+#!/bin/bash
+
+arg1=${1,,}
+if [[ $arg1 == "setsynergycip" || $arg1 == "set" ]]; then
+    if [[ -z $2 ]]; then
+	arg1="" 
+    else
+	echo ${2} > ~/.config/bscripts/WM.$(hostname).synergyc
+	echo ${3} >> ~/.config/bscripts/WM.$(hostname).synergyc
+	exit
+    fi
+elif [[ $arg1 == "fix" ]]; then
+    kill -USR1 $(pgrep ^xcompmgr$) 
+fi
+
+
+[[ -z $arg1 ]] && echo -en "Use ${0} --help\nRequires one of the following available Window Managers: \n  " &&x check && exit
+if [[ ${arg1,,} == "--help" || ${arg1,,} == "help" ]]; then
+    echo "$0  --help  |  <setsynergycip | set>  <ip>  |  <window manager>"
+    echo "  --help: displays this help message"
+    echo -e "  setsynergyc <ip> (<debug-level>): sets synergyc ip address and debug level (ERROR WARNING NOTE INFO DEBUG DEBUG1 DEBUG2)\n    Default Debug Level: NOTE"
+    echo "  <window manager>: opens Window Manager via 'ssh -tt' in a screen session to emulate tty execution"
+    exit
+fi
+
+
+
+mkdir -p /tmp/bscripts 
+echo "${arg1}" > /tmp/bscripts/${USER}-WM.tmp
+$($(which screen) -S WM_$1  -c ~/.config/bscripts/WM.screenrc )

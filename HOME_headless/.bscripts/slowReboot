@@ -1,0 +1,9 @@
+#!/bin/bash
+
+
+#if [ $USER == "root" ]; then
+
+sudo umount /mnt/*
+$(ping 127.0.0.1 -c 10 -t 1 2>&1 > /dev/null  &&  shutdown -r now ) &
+
+#fi

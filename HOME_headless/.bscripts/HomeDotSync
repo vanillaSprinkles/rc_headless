@@ -1,0 +1,493 @@
+#!/bin/bash
+
+
+confFile="${XDG_CONFIG_HOME}/bscripts/HomeDotSync.$(hostname).${USER}.conf"
+confFileWorkHeadless="${XDG_CONFIG_HOME}/bscripts/HomeDotSync.Work.Headless.conf"
+
+
+
+GREP=$(which grep)
+COLUMNS=$(tput cols)
+## all for help ##
+function help() {
+    echo -e "parameters:"
+    echo -e " help:  displays this help"
+    echo -e " edit:  edits the config file if \$EDITOR is set:\n        ${confFile}"
+    echo -e " (work | headless): uses the work/headless config for creating a work/headless environment:\n        ${confFileWorkHeadless}"
+    echo -e " edit (work | headless): edits the work config file if \$EDITOR is set:\n        ${confFileWorkHeadless}"
+    echo -e " [not implemented] confFile <path to custom config file>"
+    echo -e " [not implemented] edit confFile <path to custom config file>"
+    exit
+}
+args=(${@,,})
+if [ "$(echo "${args[@]}" | $GREP -Eo "help")" == "help" ]; then
+    help
+elif [ "$(echo "${args[@]}" | $GREP -Eo "edit")" == "edit" ]; then
+    if [ -z ${EDITOR} ]; then
+	echo "\$EDITOR NOT SPECIFIED"
+	help
+    else
+	if [ "$(echo "${args[@]}" | $GREP -Eo "work")" == "work" ]; then
+	    confFile="${confFileWorkHeadless}"
+	fi
+	${EDITOR} ${confFile}
+	echo "just executed:   ${EDITOR}   ${confFile}"
+	exit
+    fi
+elif [ "$(echo "${args[@]}" | $GREP -Eo "work")" == "work" ]; then
+    confFile="${confFileWorkHeadless}"
+elif [ "$(echo "${args[@]}" | $GREP -Eo "headless")" == "headless" ]; then
+    confFile="${confFileWorkHeadless}"
+elif [[ -n ${@} ]]; then
+    help
+fi
+## end all for help ##
+
+
+##   read confFile
+[[ ! -e ${confFile} || ! -s ${confFile} ]] && echo "need file ${confFile}, exiting" && exit
+source ${confFile}
+
+
+
+### print sync files, binary like string
+if [[  ${PrintSYNCFiles} != 0 && ${PrintSYNCFiles} != 1 ]]; then
+    psf=$( echo ${PrintSYNCFiles} | $GREP -Eoe "[0-1]{3}" )
+    if [[ ${#psf} == 3 ]]; then
+	PrintSYNCFiles=${psf}
+    else
+	s=0; i=0; d=0
+	[[ "$(echo "${PrintSYNCFiles}" | $GREP -Eoe "sync")"   == "sync"   ]]  &&  s=1
+	[[ "$(echo "${PrintSYNCFiles}" | $GREP -Eoe "ignore")" == "ignore" ]]  &&  i=1
+	[[ "$(echo "${PrintSYNCFiles}" | $GREP -Eoe "dunno")"  == "dunno"  ]]  &&  d=1
+	PrintSYNCFiles=$s$i$d
+    fi
+    if [[ "$PrintSYNCFiles" == "111" ]]; then
+	PrintSYNCFiles="1"
+    elif [[ "$PrintSYNCFiles" == "000" ]]; then
+	PrintSYNCFiles="0"
+    fi
+fi
+
+
+
+### the fun starts here, dont edit below this line ###
+######################################################
+#why?# IgnoreReg+=("\.gitconfig$")
+#IgnoreReg+=("\.config[/]{0,1}$")
+#IgnoreReg+=("\.config$")
+#IgnoreRegCFG+=("\.config/$")
+
+echo -n " ${0##*/}" 
+[[ -n ${@} ]] && echo " ${@}:" || echo ":"
+echo "   output folder: ${DotFiles}"
+
+
+### needs work here for dynamic  XDG_CONFIG_HOME   ###
+## imported
+CONFIGf="${XDG_CONFIG_HOME}"
+CONFIGfr="${XDG_CONFIG_HOME//./\\.}"
+uhf="$(${GREP} $(id -un) /etc/passwd | cut -d':' -f6)"
+dCONFIG="${XDG_CONFIG_HOME//${uhf}\//}"
+dCONFIGr="${dCONFIG//./\\.}"
+#echo "${uhf} /   ${dCONFIG}"
+#echo "${CONFIGf}   ${CONFIGfr}"
+#XDG_C_HOME_name=${
+#exit
+
+#echo ${GLOBALrsyncIgnores[@],/ /,}
+tGRI=${GLOBALrsyncIgnores[@]}
+[[ ${#tGRI} -gt 0 ]] && GRI="--exclude=${tGRI// / --exclude=}" || GRI=""
+#echo ${GRI}
+#exit
+
+## dot files sync'd (and theoretically Ignored)
+dotFiles=()
+dotFilesCFG=()
+dotFilesEMACS=()
+
+# const excludes
+gexcl="--exclude=*~ --exclude=#*#"
+exclusions="${gexcl}  ${GRI}  --exclude=.pulse/*-runtime"
+exclusionsCFG="${gexcl}  ${GRI}  --exclude=dwb-uni.fifo --exclude SingletonLock --exclude SingletonCookie --exclude SingletonSocket"
+exclusionsEMACS="${gexcl}  ${GRI}"
+
+##
+# main dots
+sz_privC=${#privC[@]}
+for ((itr=0;itr<sz_privC;itr++)); do
+  # 0  command +1  file
+    if (( $itr %  2 == 0 )); then
+	${privC[$itr]}  $exclusions  ~/${privC[$((itr+1))]}   ${DotFiles}/priv/
+	dotFiles+=("${privC[$((itr+1))]}")
+    fi
+done
+
+sz_priv=${#priv[@]}
+for ((itr=0;itr<sz_priv;itr++)); do
+    rsync -cLtr $v  $exclusions  ~/${priv[$itr]}   ${DotFiles}/priv/
+    dotFiles+=("${priv[$itr]}")
+done
+
+sz_pubC=${#pubC[@]}
+for ((itr=0;itr<sz_pubC;itr++)); do
+    if (( $itr % 2 == 0 )); then
+	${pubC[$itr]}  $exclusions   ~/${pubC[$((itr+1))]}   ${DotFiles}/pub/
+	dotFiles+=("${pubC[$((itr+1))]}")
+    fi
+done
+
+sz_pub=${#pub[@]}
+for ((itr=0;itr<sz_pub;itr++)); do
+    rsync -cLtr $v  $exclusions  ~/${pub[$itr]}   ${DotFiles}/pub/
+    dotFiles+=("${pub[$itr]}")
+done
+# end main dots
+##
+
+##
+# .config folder rsync's
+sz_pubCFG=${#pubCFG[@]}
+mkdir -p ${DotFiles}/pub/.config
+for ((itr=0;itr<sz_pubCFG;itr++)); do  #_# ~/.config
+    rsync -cLtr $v  $exclusionsCFG  ${CONFIGf}/${pubCFG[$itr]}   ${DotFiles}/pub/.config/
+    dotFilesCFG+=("${pubCFG[$itr]}")
+done
+
+sz_privCFG=${#privCFG[@]}
+mkdir -p ${DotFiles}/priv/.config
+for ((itr=0;itr<sz_privCFG;itr++)); do  #_# ~/.config
+    rsync -cLtr $v  $exclusionsCFG  ${CONFIGf}/${privCFG[$itr]}  ${DotFiles}/priv/.config/
+    dotFilesCFG+=("${privCFG[$itr]}")
+done
+
+sz_pubCFGc=${#pubCFGc[@]}
+mkdir -p ${DotFiles}/pub/.config
+for ((itr=0;itr<sz_pubCFGc;itr++)); do
+    if (( $itr % 2 == 0 )); then
+	echo "stub:  pubCFGc"
+#	${pubCFGc[$itr]}  $exclusionsCFG  ~/.config/${pubCFGc[$((itr+1))]}   ${DotFiles}/pub/.config/
+#	dotFilesCFG+=("${pubCFGc[$((itr+1))]}")
+    fi
+done
+
+sz_privCFGc=${#privCFGc[@]}
+mkdir -p ${DotFiles}/priv/.config
+for ((itr=0;itr<sz_privCFGc;itr++)); do
+    if (( $itr % 2 == 0 )); then
+	echo "stub:  privCFGc"
+#	${privCFGc[$itr]}  $exclusionsCFG  ~/.config/${privCFGc[$((itr+1))]}   ${DotFiles}/priv/.config/
+#	dotFilesCFG+=("${privCFGc[$((itr+1))]}")
+    fi
+done
+# end .config folder rsync's
+##
+
+
+##
+# .emacs.d folder rsync's
+sz_pubEMACS=${#pubEMACS[@]}
+mkdir -p ${DotFiles}/pub/.emacs.d
+for ((itr=0;itr<sz_pubEMACS;itr++)); do
+    rsync -cLtr $v  $exclusionsEMACS  ~/.emacs.d/${pubEMACS[$itr]}   ${DotFiles}/pub/.emacs.d/
+    dotFilesEMACS+=("${pubEMACS[$itr]}")
+done
+
+sz_privEMACS=${#privEMACS[@]}
+#echo "${#privEMACS[@]}    ${sz_privEMACS}"
+mkdir -p ${DotFiles}/priv/.emacs.d
+for ((itr=0;itr<sz_privEMACS;itr++)); do
+    rsync -cLtr $v  $exclusionsEMACS  ~/.emacs.d/${privEMACS[$itr]}  ${DotFiles}/priv/.emacs.d/
+    dotFilesEMACS+=("${privEMACS[$itr]}")
+done
+# end .emacs.d folder rsync's
+##
+
+
+
+## convert sync'able dot-files to RegEx
+sz_dotFiles=${#dotFiles[@]}
+sz_dotFilesCFG=${#dotFilesCFG[@]}
+sz_dotFilesEMACS=${#dotFilesEMACS[@]}
+
+dfR=()
+dfRCFG=()
+dfREMACS=()
+if [[ ${PrintSYNCFiles} == 1 ||  -n "${PrintSYNCFiles}" ]]; then
+    rm -f /tmp/dotfilesyncerouts.dunnos
+    rm -f /tmp/dotfilesyncerouts.ignores
+    rm -f /tmp/dotfilesyncerouts.gignores
+    rm -f /tmp/dotfilesyncerouts.syncing
+    touch /tmp/dotfilesyncerouts.dunnos  /tmp/dotfilesyncerouts.ignores /tmp/dotfilesyncerouts.gignores  /tmp/dotfilesyncerouts.syncing
+fi
+
+[[ ${PrintSYNCFiles} == 1 ||  "${PrintSYNCFiles:0:1}" == 1  ]] && echo -e "\nsync'ing:"
+
+for (( itr=0;itr<sz_dotFiles;itr++ )); do
+    tmp="${dotFiles[$itr]/$'.'/\\.}"
+    tmp2="${tmp/$'\*'/.*}"'$'
+    if [[ ${PrintSYNCFiles} == 1  || ${PrintSYNCFiles:0:1} == 1 ]]; then
+	echo " ${tmp2}" >> /tmp/dotfilesyncerouts.syncing
+    fi
+    dfR+=( ${tmp2} )
+done
+# .config syncing list
+
+for (( itr=0;itr<sz_dotFilesCFG;itr++ )); do
+    tmp="${dotFilesCFG[$itr]/$'.'/\\.}"
+#    tmp2="\.config/${tmp/$'\*'/.*}"'$'
+    tmp2="/${dCONFIGr}/${tmp/$'\*'/.*}"'$'
+    if [[ ${PrintSYNCFiles} == 1 || ${PrintSYNCFiles:0:1} == 1 ]]; then
+	echo " ${tmp2}" >> /tmp/dotfilesyncerouts.syncing
+    fi
+    dfRCFG+=( ${tmp2} )
+done
+# .emacs.d syncing list
+for (( itr=0;itr<sz_dotFilesEMACS;itr++ )); do
+    tmp="${dotFilesEMACS[$itr]/$'.'/\\.}"
+    tmp2="\.emacs.d/${tmp/$'\*'/.*}"'$'
+    if [[ ${PrintSYNCFiles} == 1 || ${PrintSYNCFiles:0:1} == 1 ]]; then
+	echo " ${tmp2}" >> /tmp/dotfilesyncerouts.syncing
+    fi
+    dfREMACS+=( ${tmp2} )
+done
+
+
+
+if [[ ${PrintSYNCFiles} == 1 || ${PrintSYNCFiles:0:1} == 1 ]]; then
+#    $(printListAsGrid_uniq $(cat /tmp/dotfilesyncerouts.syncing)
+    if [[ ${PrintSYNCasGrid} == 1 ]]; then
+	sort /tmp/dotfilesyncerouts.syncing | column -c ${COLUMNS}
+    else
+	sort /tmp/dotfilesyncerouts.syncing
+    fi
+    echo "$($GREP -v "^[ ]*$" /tmp/dotfilesyncerouts.syncing | wc -l)  sync definitions"
+    #echo -e  $(($sz_dotFiles+$sz_dotFilesCFG))
+    rm -f /tmp/dotfilesyncerouts.syncing
+    
+fi
+
+## add IgnoreReg to RegEx array: dfR
+sz_ignores=${#IgnoreReg[@]}
+sz_ignoresCFG=${#IgnoreRegCFG[@]}
+sz_ignoresEMACS=${#IgnoreRegEMACS[@]}
+sz_globalIgnores=${#GLOBALrsyncIgnores[@]}
+
+for ((itr=0;itr<sz_ignores;itr++)); do
+    dfR+=( "${IgnoreReg[$itr]}" )
+done
+# .config ignores
+for ((itr=0;itr<sz_ignoresCFG;itr++)); do
+#    dfRCFG+=( "\.config${IgnoreRegCFG[$itr]}" )
+    dfRCFG+=( "${dCONFIGr}${IgnoreRegCFG[$itr]}" )
+done
+# .emacs ignores
+for ((itr=0;itr<sz_ignoresEMACS;itr++)); do
+    dfREMACS+=( "\.emacs.d${IgnoreRegEMACS[$itr]}" )
+done
+
+
+if [[ ${PrintSYNCFiles} == 1 || ${PrintSYNCFiles:1:1} == 1 ]]; then
+    ignoreing=0
+    echo -e "\nIgnore'ing:"
+    for ((itr=0;itr<sz_ignores;itr++)); do
+#	[[ "${IgnoreReg[$itr]}" == "^_placeholder_$" || "${IgnoreReg[$itr]}" == "\.config$"  || "${IgnoreReg[$itr]}" == "\.emacs\.d$" ]] && continue
+	[[ "${IgnoreReg[$itr]}" == "^_placeholder_$" || "${IgnoreReg[$itr]}" == "${dCONFIGr}$"  || "${IgnoreReg[$itr]}" == "\.emacs\.d$" ]] && continue
+	echo  " ${IgnoreReg[$itr]}" >> /tmp/dotfilesyncerouts.ignores
+    done
+    #.config
+    for ((itr=0;itr<sz_ignoresCFG;itr++)); do
+#	[[ "${IgnoreRegCFG[$itr]}" == "^_placeholder_$" || "${IgnoreRegCFG[$itr]}" == "\.config$" ]] && continue
+	[[ "${IgnoreRegCFG[$itr]}" == "^_placeholder_$" || "${IgnoreRegCFG[$itr]}" == "${dCONFIGr}$" ]] && continue
+#	echo  " \.config${IgnoreRegCFG[$itr]}" >> /tmp/dotfilesyncerouts.ignores
+	echo  " ${dCONFIGr}${IgnoreRegCFG[$itr]}" >> /tmp/dotfilesyncerouts.ignores
+    done
+    #.emacs.d
+    for ((itr=0;itr<sz_ignoresEMACS;itr++)); do
+	[[ "${IgnoreRegEMACS[$itr]}" == "^_placeholder_$" || "${IgnoreRegEMACS[$itr]}" == "\.emacs\.d$" || "${IgnoreRegEMACS[$itr]}" == "^_$" ]] && continue
+	echo  " \.emacs.d${IgnoreRegEMACS[$itr]}" >> /tmp/dotfilesyncerouts.ignores
+    done
+    # GLOBALrsyncIgnores
+    for ((itr=0;itr<sz_globalIgnores;itr++)); do
+	[[ "${GLOBALrsyncIgnores[$itr]}" == "^_placeholder_$" ]] && continue
+	echo  " ${GLOBALrsyncIgnores[$itr]}" >> /tmp/dotfilesyncerouts.gignores
+    done
+#    $(printListAsGrid_uniq $(cat /tmp/dotfilesyncerouts.ignores)
+    if [[ ${PrintSYNCasGrid} == 1 ]]; then
+	sort /tmp/dotfilesyncerouts.ignores | column -c ${COLUMNS}
+    else
+	sort /tmp/dotfilesyncerouts.ignores
+    fi
+    echo "$($GREP -v "^[ ]*$" /tmp/dotfilesyncerouts.ignores | wc -l)  ignore definitions"
+    echo -e "\nIgnore'ing (globals):"
+    if [[ ${PrintSYNCasGrid} == 1 ]]; then
+	sort /tmp/dotfilesyncerouts.gignores | column -c ${COLUMNS}
+    else
+	sort /tmp/dotfilesyncerouts.gignores
+    fi
+    echo "$($GREP -v "^[ ]*$" /tmp/dotfilesyncerouts.gignores | wc -l)  ignore (global) definitions"
+    rm -f /tmp/dotfilesyncerouts.ignores    
+    rm -f /tmp/dotfilesyncerouts.gignores
+fi
+## rsync + ignores file lists as RegEx
+sz_r=${#dfR[@]}
+sz_rCFG=${#dfRCFG[@]}
+sz_rEMACS=${#dfREMACS[@]}
+
+
+function remel(){
+# http://www.tech-recipes.com/rx/910/bash-array-operations/
+    array=( $@ )
+    let ind=${#array[@]}-1
+    i=${array[$ind]}
+    unset array[$ind]
+    if [ $i -ne 0 ]; then
+	array=( ${array[@]:0:$i} ${array[@]:$(($i + 1))} )
+    else
+	array=( ${array[@]:$(($i + 1))} )
+    fi
+    echo ${array[@]}
+}
+
+
+
+### find all dot-files, blank out sync'd files
+allDotFiles=( $(find -L ${HOME}/ -maxdepth 1  -name ".*" | $GREP -v "/${dCONFIG}[/]*$" | $GREP -v "/\.emacs\.d$") )
+#allDotFiles=(`remel ${allDotFiles[@]} ".config"`)
+sz_allDF=${#allDotFiles[@]}
+for (( itr=0;itr<sz_allDF;itr++ )); do
+
+    for (( i=0; i<sz_r; i++ )); do
+	if [[ "${allDotFiles[$itr]}" =~ ${dfR[$i]} ]]; then
+	    allDotFiles[$itr]=""
+	    i=sz_r
+	fi
+    done
+done
+# find all files/folders in .config, blank out sync'd ones
+allCFGFiles=( $(find -L ${XDG_CONFIG_HOME}/ -maxdepth 1 -name "*" | $GREP -v "/${dCONFIG}[/]*[.]*$" | $GREP -Ev "*~" | $GREP -Ev "#*#") )
+sz_allDF_CFG=${#allCFGFiles[@]}
+for (( itr=0;itr<sz_allDF_CFG;itr++ )); do
+    for (( i=0; i<sz_rCFG; i++ )); do
+#	echo "${allCFGFiles[$itr]}   =~   ${dfRCFG[$i]} "
+	if [[ "${allCFGFiles[$itr]}" =~ ${dfRCFG[$i]} ]]; then
+	    allCFGFiles[$itr]=""
+	    i=sz_rCFG
+	fi
+    done
+done
+# find all files/folders in .emacs.d, blank out sync'd ones
+allEMACSFiles=( $(find -L ${HOME}/.emacs.d/ -maxdepth 1 -name "*" | $GREP -v "/\.emacs.d[/]*[.]*$" | $GREP -Ev "*~" | $GREP -Ev "#*#") )
+sz_allDF_EMACS=${#allEMACSFiles[@]}
+for (( itr=0;itr<sz_allDF_EMACS;itr++ )); do
+    for (( i=0; i<sz_rEMACS; i++ )); do
+#	echo "${allEMACSFiles[$itr]}   =~   ${dfREMACS[$i]} "
+	if [[ "${allEMACSFiles[$itr]}" =~ ${dfREMACS[$i]} ]]; then
+	    allEMACSFiles[$itr]=""
+	    i=sz_rEMACS
+	fi
+    done
+done
+
+
+
+
+### clean up all dot-files -> now are list of not sync'd
+for (( itr=sz_allDF; itr >= 0; itr-- )); do
+    if [[ "${allDotFiles[$itr]}" == "" ]]; then
+	allDotFiles=(`remel ${allDotFiles[@]}  ${itr}`)
+    fi
+done
+#.config folder
+for (( itr=sz_allDF_CFG; itr >= 0; itr-- )); do
+    if [[ "${allCFGFiles[$itr]}" == "" ]]; then
+	allCFGFiles=(`remel ${allCFGFiles[@]}  ${itr}`)
+    fi
+done
+#.emacs folder
+for (( itr=sz_allDF_EMACS; itr >= 0; itr-- )); do
+    if [[ "${allEMACSFiles[$itr]}" == "" ]]; then
+	allEMACSFiles=(`remel ${allEMACSFiles[@]}  ${itr}`)
+    fi
+done
+
+
+
+## print out the not-specified list
+sz_allDF=${#allDotFiles[@]}
+sz_allDF_CFG=${#allCFGFiles[@]}
+sz_allDF_EMACS=${#allEMACSFiles[@]}
+if [[ ${PrintSYNCFiles} == 1 || ${PrintSYNCFiles:2:1} == 1 ]]; then
+    echo -e "\nnot specified:"
+    for (( itr=0;itr<sz_allDF;itr++ )); do
+	echo " ${allDotFiles[$itr]}" >> /tmp/dotfilesyncerouts.dunnos
+    done
+    #.config
+    for (( itr=0;itr<sz_allDF_CFG;itr++ )); do
+	echo " ${allCFGFiles[$itr]}" >> /tmp/dotfilesyncerouts.dunnos
+    done
+    #.emacs.d
+    for (( itr=0;itr<sz_allDF_EMACS;itr++ )); do
+	echo " ${allEMACSFiles[$itr]}" >> /tmp/dotfilesyncerouts.dunnos
+    done
+#    $(printListAsGrid_uniq $(cat /tmp/dotfilesyncerouts.dunnos)
+    if [[ ${PrintSYNCasGrid} == 1 ]]; then
+	sort /tmp/dotfilesyncerouts.dunnos | column -c ${COLUMNS}
+    else
+	sort /tmp/dotfilesyncerouts.dunnos
+    fi
+    echo "$($GREP -v "^[ ]*$" /tmp/dotfilesyncerouts.dunnos | wc -l)  not specified files"
+    rm -f /tmp/dotfilesyncerouts.dunnos
+#    echo -e "$(($sz_allDF+$sz_allDF_CFG))"
+fi
+
+
+
+### sync the non-specified to priv_nonSpecified
+for (( itr=0; itr< sz_allDF; itr++ )); do
+    rsync -cltr $exclusions  ${allDotFiles[$itr]}  ${DotFiles}/priv_nonSpecified/
+done
+#.config folder
+mkdir -p ${DotFiles}/priv_nonSpecified/.config
+for (( itr=0; itr< sz_allDF_CFG; itr++ )); do
+    rsync -cltr $exclusionsCFG  ${allCFGFiles[$itr]}  ${DotFiles}/priv_nonSpecified/.config/
+done
+#.emacs.d folder
+mkdir -p ${DotFiles}/priv_nonSpecified/.emacs.d
+for (( itr=0; itr< sz_allDF_EMACS; itr++ )); do
+    rsync -cltr $exclusionsEMACS  ${allEMACSFiles[$itr]}  ${DotFiles}/priv_nonSpecified/.emacs.d/
+done
+
+
+#touch ${DotFiles}/.gitignore
+echo -e "priv\npriv_nonSpecified\n*_priv\n*~" > ${DotFiles}/.gitignore
+chmod 644 ${DotFiles}/.gitignore
+
+
+if [[ ${kill_index_html} == 1 ]]; then
+    find ${DotFiles} -type f -name "index\.html" -exec rm -f {} +;
+fi
+
+
+chmod 700 ${DotFiles}/priv
+chmod 700 ${DotFiles}/priv_nonSpecified
+
+
+
+if [[ ${kill_empty_dir} == 1 ]]; then
+#    rm -d ${DotFiles}/
+
+## fails with 'space' in filename
+#    find ${DotFiles} -xdev -type d | xargs -I{} find {} -maxdepth 0 -empty | xargs rm -d
+#    find ${DotFiles} -xdev -type d | xargs -I{} find {} -maxdepth 0 -empty | xargs rm -d
+
+    find ${DotFiles} -xdev -type d | xargs -I{} find {} -maxdepth 0 -empty | sed 's/^/"/g' | sed 's/$/"/g' |  xargs rm -d
+    find ${DotFiles} -xdev -type d | xargs -I{} find {} -maxdepth 0 -empty | sed 's/^/"/g' | sed 's/$/"/g' |  xargs rm -d
+ 
+# | xargs rm -d
+fi
+
+
+
+## now public-ify the .gitconfig
+sed 's/\(^\t* *name *= *\).*/\1<some-name>/g' ~/.gitconfig | sed 's/\(^\t* *email *= *\).*/\1<some@email>/g' > ${DotFiles}/pub/.gitconfig

@@ -1,0 +1,84 @@
+#!/bin/bash
+
+if [[ -z ${1} ]]; then
+    date '+%Y-%m-%d__%H.%M.%S'
+    exit
+fi
+
+function help() {
+    echo "parameters:"
+    echo " < NOs >  no: seconds"
+    echo " < NOm >  no: minutes or seconds"
+    echo " < ns >   nanoseconds"
+    echo " < t1 | t. >   dot-delineated"
+    echo " < t2 | t- >   dash-delineated"
+    echo " < t3 | t._ >   dot-underscore-delineated"
+    echo " < t4 | t-_ >   dash-underscore-delineated"
+    exit
+}
+
+#a="$(echo ${1} | tr '[A-Z]' '[a-z]')"
+#b="$(echo ${2} | tr '[A-Z]' '[a-z]')"
+a=${1,,}
+b=${2,,}
+c=${3,,}
+
+if [[ -n $(echo "$a $b" | $(which grep) "help")  ]]; then
+    help 
+fi
+
+Delin=0
+NanoS=0
+#FRMT="+%Y-%m-%d__%H.%M.%S"
+D='.'; DS='__'
+
+
+NOend=$(echo "$a $b $c" | grep -Eo "nos|nom" | sed 's/ //g')
+NanoS=$(echo "$a $b $c" | grep -Eo "ns" | sed 's/ //g')
+
+
+# set delin
+Delin=$(echo "$a $b $c" | grep -Eo "t[1-4]|t[.-.-]+[_]*" | sed 's/ //g')
+[[ -n $Delin ]] && case $Delin in
+    t1|t.)
+	D='.'
+	DS=$D;;
+    t2|t-)
+	D='-'
+	DS=$D;;
+    t3|t._)
+	D='.'
+	DS='__';;
+    t4|t-_)
+	D='-'
+	DS='__';;
+    *)
+	help;;
+esac
+
+
+# set nanosecond
+if [[ "$NanoS" == "ns" ]]; then
+    ST="%N"
+else
+    ST="%S"
+fi
+
+
+TAIL="%M${D}${ST}"
+# NOend - aka tail - skip Second  or  Min and Sec
+[[ -n $NOend ]] && if [[ $NOend == 0 ]]; then
+    TAIL="%M${D}${ST}"
+elif [[ $NOend == "nos" ]]; then
+    TAIL="%M${D}00"
+elif [[ $NOend == "nom" ]]; then
+    TAIL="00${D}00"
+else
+    help
+fi
+[[ $NOend == "nos" || $NOend == "nom" ]] && [[ "$NanoS" == "ns" ]] &&  TAIL="${TAIL}0000000"
+
+
+FRMT="+%Y${D}%m${D}%d${DS}%H${D}${TAIL}"
+date $FRMT
+

@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# set variables
+rtime=$(datime)
+builduser=$(cat ${HOME}/.config/bscripts/cower-blind-update.$(hostname).conf 2> /dev/null)
+[[ -n $builduser ]] && buHome=$( grep builder /etc/passwd | cut -d':' -f6 )
+[[ -n $buHome ]] && funDir="${buHome}/cower-blind-updates/${rtime}"
+
+
+function help() {
+    echo -e "${0##*/}:\n  requires: ${USER} has at least sudo privelages to:\n    sudo su - ${builduser:-<build-user>}\n    sudo pacman -U ${buHome}/*/*.tar.xz"
+    echo -e "  optional: set EDITOR enviromental variable to allow editing\n"
+    echo -e "${0##*/}  ${1}\n    displays this help text"
+    echo -e "${0##*/}\n    does a blind update with current selected user '${builduser:-<build-user>}', prompts to: edit PKGBUILDs and install package"
+    echo -e "${0##*/}  set-build-user  <build-user>\n    sets the builduser to <build-user>"
+    echo -e "${0##*/}  <(anytext)>\n    does a super blind update with current selected user '${builduser:-<build-user>}', does not prompt: to edit PKGBUILDS or install package"
+    exit
+}
+
+a=${1,,}
+# parameter check
+[[ -z $builduser ]] && echo -e "Error, no build user, run: $0 set-build-user <build-user>\n" && help && exit
+if [[ "$a" == "set-build-user" ]] && [[ -n $2 ]]; then
+    # set build-user
+    mkdir -p  ${HOME}/.config/bscripts
+    echo $2 > ${HOME}/.config/bscripts/cower-blind-update.$(hostname).conf
+    exit
+elif [[ "$a" == "help" || "$a" == "--help" || "$a" == "-help" ]]; then
+    help $1
+##elif [[ "$a" =~ "--" ]]; then
+## TODO
+##    echo  "two dashes" && exit
+# super blind mode
+elif [[ -n $1 ]]; then
+    sblind=1
+else
+    sblind=0
+fi
+
+
+# edit? and make package
+instPkgs=()
+instPkgsP=()
+
+# create sub-folder in builduser homefolder (or wherever) and chmod it and parent folders
+buHomeSC=$(($(echo ${buHome} | sed 's/[^/]//g' | wc -m)-1))
+funDirSC=$(($(echo ${funDir} | sed 's/[^/]//g' | wc -m)-1))
+sudo su - ${builduser} -c "mkdir -vp ${funDir}"
+if (( ($funDirSC - $buHomeSC) > 0 )); then
+    subHome=${funDir:${#buHome}+1:${#funDir} }
+    chFolder=$buHome
+    for (( i=1; i<=($funDirSC - $buHomeSC); i++ )); do
+	subHomeS=$(echo $subHome | cut -d'/' -f${i})
+	chFolder="${chFolder}/${subHomeS}"
+	sudo su - ${builduser} -c "chmod 775  $chFolder"
+    done
+fi
+
+sudo su - ${builduser} -c "source /etc/profile; cower -ddu -t ${funDir}; chmod 755 ${funDir}/* 2>/dev/null"
+dirs=$( find ${funDir}/* -maxdepth 0 -type d  2>/dev/null)
+[[ -z $dirs ]] && rmdir -v ${funDir} && echo "no updates" &&  exit
+
+#for d in ${funDir}/*; do
+for d in $dirs; do
+    if [[ $sblind == 0 && -n $EDITOR ]]; then
+	echo -n "edit ${d##*/} PKGBUILD?  y/n: "
+	read yay
+	if [[ "${yay,,}" == "y" ]]; then
+            sudo ${EDITOR} ${d}/PKGBUILD
+        fi
+    fi
+    sudo su - ${builduser} -c "source /etc/profile; cd ${d}; makepkg PKGBUILD"
+    instPkgs+=( "${d##*/}" )
+    instPkgsP+=( "${d}/${d##*/}*.tar.xz" )
+done
+
+
+# install all packages from one line
+sz_instPkgs=${#instPkgs[@]}
+if [[ $sblind == 0 ]]; then
+    echo -n "install ${instPkgs[@]}?  y/n: "
+    read yay
+    if [[ "${yay,,}" == "y" ]]; then
+        sudo pacman -U ${instPkgsP[@]}
+    fi
+else
+    sudo pacman -U ${instPkgsP[@]}
+fi
+

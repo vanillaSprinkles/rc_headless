@@ -1,0 +1,16 @@
+#!/bin/bash
+
+function remel(){
+# http://www.tech-recipes.com/rx/910/bash-array-operations/
+    array=( $@ )
+    let ind=${#array[@]}-1
+    i=${array[$ind]}
+    unset array[$ind]
+    if [ $i -ne 0 ]; then
+        array=( ${array[@]:0:$i} ${array[@]:$(($i + 1))} )
+    else
+        array=( ${array[@]:$(($i + 1))} )
+    fi
+    echo ${array[@]}
+}
+

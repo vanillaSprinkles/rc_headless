@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# wpa_passphrase SSID "passphraze" > /etc/wpa_supplicant/ssid.conf
+ wpa_supplicant  -i wlan0 -c /etc/wpa_supplicant/ssid.conf
+# wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/ssid.conf
+
+
+# https://bugs.freedesktop.org/show_bug.cgi?id=53954
+# https://bugs.archlinux.org/task/32741
+# , just change eth0 to wlan0 and copy the file to /etc/systemd/system

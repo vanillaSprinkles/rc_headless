@@ -1,0 +1,67 @@
+#!/bin/bash
+
+ #*******************************
+ # Multiple dropbox instances
+ #*******************************
+ dboxUsr=$( cat ~/.config/bscripts/dropboxer.$(hostname).conf )
+ dboxHom=$( cat /etc/passwd | grep ${dboxUsr} | cut -d':' -f6 )
+
+ dropboxes=( $(cat $dboxHom/.dboxes) )
+
+ dbBase="${dboxHom}"
+echo "$dropboxes[@]    $dboxUsr   $dboxHom   $dbBase"
+exit
+
+ if [[ -z "${1}" || "${1}" == "start" ]]; then
+     for dbox in ${dropboxes[@]}
+     do
+	 if ! [ -d "${dbBase}/$dbox" ];then
+             mkdir "${dbBase}/$dbox"
+	 fi
+	 HOME=${dbBase}/${dbox}/ /usr/bin/dropbox start -i
+     done
+
+ elif [[  "${1}" == "stop" ]]; then
+     for dbox in ${dropboxes[@]}
+     do
+	 if ! [ -d "${dbBase}/$dbox" ];then
+             mkdir "${dbBase}/$dbox"
+	 fi
+	 HOME=${dbBase}/${dbox}/ /usr/bin/dropbox stop -i
+     done
+
+ elif [[ "${1}" == "puburl" || "${1}" == "url" ]]; then
+     for dbox in ${dropboxes[@]}
+     do
+	 echo -ne "${dbBase}/${dbox}/Dropbox/Public/${2}\n  "
+	 HOME=${dbBase}/${dbox}/ /usr/bin/dropbox puburl ${dbBase}/${dbox}/Dropbox/Public/${2}
+     done
+
+
+ elif [[ "${1}" == "index" ]]; then
+     for dbox in ${dropboxes[@]}
+     do
+	 /usr/bin/dropbox-index.py -R ${dbBase}/${dbox}/Dropbox/Public
+     done
+
+
+ elif [[ "${1}" == "index.html" ]]; then
+     for dbox in ${dropboxes[@]}
+     do
+	 /usr/bin/dropbox-index.py -R ${dbBase}/${dbox}/Dropbox/Public > /dev/null
+     done
+     for dbox in ${dropboxes[@]}
+     do
+	 echo -ne "${dbBase}/${dbox}/Dropbox/Public/${2}\n  "
+	 HOME=${dbBase}/${dbox}/ /usr/bin/dropbox puburl ${dbBase}/${dbox}/Dropbox/Public/${1}
+     done
+
+
+ else
+     for dbox in ${dropboxes[@]}
+     do
+	 [[ ! -d ${dbBase}/${dbox} ]] && mkdir -p ${dbBase}/${dbox}
+	 HOME=${dbBase}/${dbox}/ /usr/bin/dropbox ${@}
+     done
+
+ fi

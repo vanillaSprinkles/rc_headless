@@ -1,0 +1,48 @@
+[user]
+	email = <some@email>
+	name = <some-name>
+
+[core]
+    editor = emacs
+    pager = 
+    whitespace=fix,-indent-with-non-tab,trailing-space,cr-at-eol
+    
+[merge]
+    conflictstyle = diff3
+
+[color]
+    branch = auto
+    diff = auto
+    interactive = auto
+    pager = false
+    status = auto
+    ui = true
+[color "branch"]
+    current = yellow reverse
+    local = yellow
+    remote = green
+[color "diff"]
+    meta = yellow bold
+    frag = magenta bold
+    old = red bold
+    new = green bold
+[color "status"]
+    added = yellow
+    changed = green
+    untracked = cyan
+
+[pager]
+    diff = 
+    external = 
+
+
+[alias]
+    br = branch
+    co = checkout
+    ci = commit
+    df = diff
+    lg = log --oneline --graph --decorate
+    st = status
+
+[push]
+    default = current

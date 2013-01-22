@@ -1,0 +1,66 @@
+#!/bin/bash
+
+args=(${@})
+
+GREP="$(which grep)"
+function help() {
+    echo -e "--help called"
+    exit
+}
+function remel(){
+# http://www.tech-recipes.com/rx/910/bash-array-operations/
+    array=( $@ )
+    let ind=${#array[@]}-1
+    i=${array[$ind]}
+    unset array[$ind]
+    if [ $i -ne 0 ]; then
+        array=( ${array[@]:0:$i} ${array[@]:$(($i + 1))} )
+    else
+        array=( ${array[@]:$(($i + 1))} )
+    fi
+    echo ${array[@]}
+}
+
+twidth=$(tput cols)
+
+DELIN=' '
+if [ "$(echo "${args[@]}" | $GREP -Eoe "--help" )" == "--help" ]; then
+    help
+elif [ "${1:0:2}" == "-d" ]; then
+    args=( $(remel ${args[@]} 0) )
+    if [ "${1:2:3}" != "" ]; then
+	DELIN="${1:2:3}"
+    else
+	DELIN="$2"
+	args=( remel ${args[@]} 1 )
+    fi
+fi
+[[ ${#DELIN} > 1 ]] &&  echo -e "error: -d (delimiter) must be exactly one character" && exit
+#if [[ "${DELIN}" != ' ' ]]; then
+#    args="${args//${DELIN}/ }"
+#    args=(${args})
+#fi
+
+
+mkdir -p /tmp/bscripts/printListAsGrid
+for word in ${args[@]}; do
+    touch /tmp/bscripts/printListAsGrid/$word
+done
+grid=$(/usr/bin/ls --color=never /tmp/bscripts/printListAsGrid/)
+/usr/bin/rm -rf /tmp/bscripts/printListAsGrid
+
+echo ${grid}
+
+
+exit
+## maybe for future use..
+strLs=()
+for word in "${args[@]}"; do
+    strLs+=(${#word})
+done
+mstrLs="${strLs[@]}"  &&  mstrLs="${mstrLs// /+}"  &&  mstrLs=$(( mstrLs ))
+
+echo $mstrLs
+
+
+

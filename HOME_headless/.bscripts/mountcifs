@@ -1,0 +1,27 @@
+#!/bin/bash
+
+ARGS=("${@}")
+
+remote=$1
+mntTo=$2
+user=$3
+uid=$4
+gid=$5
+
+
+p1="<remote-host/share>"
+p2="<mount-to>"
+p3="<remote-user>"
+p4="<local-user>"
+p5="<local-group>"
+
+echo -e "mount.cifs ${remote:? ${p1}  ${p2}  ${p3}  ${p4}  ${p5}} ${mntTo:? ${p2}  ${p3}  ${p4}  ${p5}}  -o user=${user:? ${p3}  ${p4}  ${p5}},uid=${uid:? ${p4}  ${p5}},gid=${gid:? ${p5}},hard\n" #,bg,intr,hard\n"
+
+mount.cifs ${remote} ${mntTo}  -o user=${user},uid=${uid},gid=${gid},hard, #bg,intr,hard
+
+# http://unix.stackexchange.com/questions/29196/automount-nfs-autofs-timeout-settings-for-unreliable-servers-how-to-avoid-han
+##  Mount the NFS-share on the clients using the mount-options "bg,intr,hard".
+##  "bg" for background - tells the system not to block when the server is not available
+##  "intr" for interrruptable - can kill hanging mounts on the client with the kill command
+##  "hard" is the opposite of "soft"; The difference is that "hard" will keep trying endlessly while "soft" will exponentially
+##           back off its retries when the server is not available

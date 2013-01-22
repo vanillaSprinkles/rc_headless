@@ -1,0 +1,470 @@
+# mikes: https://github.com/MikereDD/home/blob/master/screenrc_a
+##-------------------------------------------------------------------------------
+## screenrc
+## Robbie  -- (d_______e@gmail.com)
+## Created on: 13/05/08 @ 21:12:45
+## -:Last Modified on: 13/05/08 @ 21:15:14:
+##-------------------------------------------------------------------------------
+
+
+# Set the escape sequence to just a single backtick instead of '^a'. FTFW!
+#escape ^``
+# ^``  => works in native linux but not through any SSH environment (ctrl ` is not captured)
+
+#----------------------------------------------------------
+## BETTER KEY BINDINGS 
+
+bind | vert_split
+bind 'K' kill
+bind 'W' windowlist
+# remove some key bindings
+bind k
+bind W
+bind ^k
+bind .
+bind ^\
+bind \\
+bind ^h
+bind h
+bind ^H
+bind x
+# make them safer
+bind s
+bind S
+bind 'z' xon
+bind ^z
+
+# fix BackSpace on Archlinux with Synergy-Foss client
+bindkey -t "^H" stuff "\177"
+#bindkey -d -k kb stuff "\177"
+
+
+# ## do not trash BackSpace, usually DEL
+#    bindkey -k kb
+#    bindkey -d -k kb
+#    #
+#    ## do not trash Delete, usually ESC [ 3 ~
+#    bindkey -k kD
+#    bindkey -d -k kD
+
+
+#  rebind login/logoff
+bind 'L'
+bind 'I' login on
+bind 'O' login off
+
+#  Toggle 'fullscreen' or not.
+#    MikereDD's:
+#      bind f eval "caption splitonly" "hardstatus ignore"
+#      bind F eval "caption always"    "hardstatus alwayslastline"
+bind f eval "hardstatus ignore"
+bind F eval "hardstatus alwayslastline"
+
+
+# Vim movement for regions
+bind ^a other
+#bind ^` other
+bind j focus down
+bind k focus up
+bind t focus top
+bind b focus bottom
+bind s split
+#bind S split -v
+bind x remove
+bind m monitor
+#bind z suspend
+bind s vbell
+#bind x stop
+#----------------------------------------------------------
+
+# Yet another hack:
+# Prepend/append register [/] to the paste if ^a^] is pressed.
+# This lets me have autoindent mode in vi.
+register [ "\033:se noai\015a"
+register ] "\033:se ai\015a"
+bind ^] paste [.]
+
+
+
+### bindkey 's 
+bindkey -k k1 select 1    # F1
+bindkey -k k2 select 2    # F2
+bindkey -k k3 select 3    # F3
+bindkey -k k4 select 4    # F4
+bindkey -k k5 select 5    # F5
+bindkey -k k6 select 6    # F6
+bindkey -k k7 select 7    # F7
+bindkey -k k8 select 8    # F8
+bindkey -k k9 select 9    # F9
+bindkey -k k; select 10   # F10
+bindkey -k F1 select 11   # F11
+bindkey -k F2 select 12   # F12
+
+# Make shift-PgUp and shift-PgDn work like they do in xterm.  (Note that this
+# requires xterm to be configured to pass those keys through, and not try to
+# act on them itself.)
+bindkey "^[[5;2~" eval "copy" "stuff ^u"
+bindkey -m "^[[5;2~" stuff ^u
+bindkey -m "^[[6;2~" stuff ^d
+
+
+#----------------------------------------------------------
+
+printcmd "cat > $HOME/.screen/print.$$"
+
+# vbell- use visual bell instead of audio bell
+vbell on
+vbell_msg "bell: window ~%"
+vbellwait 2
+
+allpartial off
+autodetach on
+
+ 
+#-#chdir
+defscrollback 10000
+startup_message off
+### causes window to be fixed size!!!! ###
+###### sessionname %h-screen ######
+altscreen on
+##bindkey -k kD sstuff \177
+shell -$SHELL
+# shelltitle '$ | '
+shelltitle "$ |<>"
+
+#shell /bin/bash
+
+#--------------------------------------------------------
+
+
+ 
+
+
+
+
+
+#------------------------------------------------------------------------------------------
+# Status and caption at the bottom of the terminal
+#-#hardstatus on
+#-#hardstatus alwayslastline
+
+#plain text
+#ugly#hardstatus string "%= %3n %t%? [ %h ]%? %="
+#hardstatus string "[screen %n%?: %t%?] %h"
+# with green and processor usage
+#hardstatus string '%{gk}[ %{G}%H %{g}][%= %{wk}%?%-Lw%?%{=b kR}(%{W}%n*%f %t%?(%u)%?%{=b kR})%{= kw}%?%+Lw%?%?%= %{g}][%{Y}%l%{g}]%{=b C}[ %m/%d %c ]%{W}'
+
+
+#hardstatus string "[screen `%n%?: %t%?] %h [%D %M %d %c]"
+###hardstatus string "%H [%n%?: %t%? | %h ]"
+
+
+# really blan attempts
+#caption always "%{= wk} %?%-Lw%?%{= kd} %n*%f %t %{= wk}%?%+Lw%? %{= wk}%=%{= Wk} %C%a %m-%d-%Y %{= wk}" 
+#caption string '%{= kW}%-Lw%{= kG}%50> %n%f* %t%{= kW}%+Lw%< %{= kG}%-=%D %d %M %Y  %c:%s%{-}'
+#caption string '%{= kG}[%{B}%H%{g}][%= %{= kw}%?%-Lw%?%{r}(%{G}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{B}%D %d %M %Y%{r} %c:%s%{g}]'
+
+#overly long, but purty one
+#red tabs (love it !!)
+#caption string '%{= kG}[%{B}%H%{g}][%{r}%l%{g}][%= %{= kw}%?%-Lw%?%{r}(%{G}%n*%f%t%?(%u)%?%{r})%{w}%?%+Lw%?%?%= %{g}][%{r}%c:%s %A%{g}][%{B}%D %d %M %Y%{g}]'
+
+
+#simplified beauty
+###caption string '%{= kG}[%{B}%H%{g}][%{r}%l%{g}][%=               %{r}(%{G}%n:%f:%t%?(%u)%?%{r})              %= %{g}][%{r}%c:%s%{g}][%{B}%D %d %M %Y%{g}]'
+###caption string '%{= kG}[%{B}%H%{g}][%{r}%l%{g}][%=%{r}(%{G}%n:%f:%t%?(%u)%?%{r})%= %{g}][%{r}%c:%s%{g}][%{B}%D %d %M %Y%{g}]'
+
+# favorite
+#caption string '%{= kG}%{r}`%{G}[%{B}%H%{g}][%{r}%l%{g}][%=%{r}(%{G}%n%{R}:%{B}%f%{R}:%{G}%t%?(%u)%?%{r})%= %{g}][%{r}%c:%s%{g}][%{B}%D %d %M %Y%{g}]'
+
+## fail test
+#hardstatus alwayslastline  '%{= kG}[%{B}%H%{g}][%{r}%l%{g}][%=               %{r}(%{G}%n:%f:%t%?(%u)%?%{r})              %= %{g}][%{r}%c:%s %A%{g}][%{B}%D %d %M %Y%{g}]' string "[screen `%n%?: %t%?] %h [%D %M %d %c]"
+
+
+#bind f eval "caption splitonly" "hardstatus ignore"
+#bind F eval "caption always"    "hardstatus alwayslastline"
+# Status - MikereDD's
+#hardstatus alwayslastline '%{= k} %{w}%n%{= 3} %= %{= w}%-w%{g}%n%{r}{g}%t%{-b r}%{w}%+w %= %{.w}%c %{r}- %{w}%m%{r}/%{w}%d%{r}/%{w}%y %{r}|%{g}%H%{r}|'
+
+
+## active ##
+
+# stripped overly long one
+# [always]lastline|message|ignore [string]
+#hardstatus lastline  "%{=04 90}%H %{R}[%{G}%n%?%{R}: %{G}%t%{R}] :: %{=04 90}%{+01}%L=%=%-Lw%45L> %{-01}%+Lw%=%-13="
+#hardstatus string "%{=04 90}%H %{R}[%{G}%n%?%{R}: %{G}%t%{R}] :: %{=04 90}%L=%=%{+01}%-Lw%45L>%{R}%{-01}[%{G}%n%?%{R}: %{G}%t%{R}]%{=04 90}%+Lw%=%-13="
+#putty-good
+#hardstatus string  "%{=04 90}%H %{R}[%{G}%n%?%{R}: %{G}%t%{R}] :: %{=04 90}%L=%=%-Lw%45L>%{R}[%{G}%n%?%{R}: %{G}%t%{R}]%{=04 90}%+Lw%=%-13="
+hardstatus string  "%{=04 90}%H %{R}[%{G}%n%?%{R}: %{G}%t%{R}] :: %{=00 30}%L=%=%-Lw%45L>%{R}[%{G}%n%?%{R}: %{G}%t%{R}]%{=00 30}%+Lw%=%-13="
+
+
+# failz cuz limit of colorz in caption
+#caption always '%{= kr}`%{g}[%{B}%H%{g}][%{r}%l%{g}][%=%{r}(%{G}%n%{R}:%{B}%f%{R}:%{G}%t%?(%u)%?%{r})%=%{g}][%{r}%c:%s%{g}][%{B}%D %d %M %Y%{g}]'
+#  always | splitonly | string  WTF
+#caption always '%{= kr}`%{g}[%{B}%H%{g}][%{r}%l%{g}][%=%{G}%n          %{B}%f     %{G}%t             %=%{g}][%{r}%c:%s%{g}][%{B}%D %d %M %Y%{g}]'
+# caption always '%{= kr}`%{g}[%{B}%H%{g}][%{r}%l%{g}][%=%{r}(%{G}%n     %{B}%f     %{G}%t%?(%u)%?%{r})%=%{g}][%{r}%c:%s%{g}][%{B}%D %d %M %Y%{g}]'
+caption always '%{= kr}`%{g}[%{B}%H%{g}][%{r}%l%{g}][%=%{r}(%{G}%n %{B}%f %{G}%t%?(%u)%?%{r})%=%{g}][%{r}%c:%s%{g}][%{B}%D %d %M %Y%{g}]'
+
+
+# %L=%-w%45L>(%n-%t)%+w%-13=
+#caption always "[%H]%L=%=%-w%45L>(%n-%t)%+w%=%-13=[%d/%m %c]"
+
+
+
+
+
+#---------------------------------------------------------------------------------------------
+ 
+# various
+#activity ""
+activity "activity in %n (%t)"
+nonblock on
+nethack on
+silencewait 15
+startup_message off
+encoding UTF-8
+defutf8 on
+term screen-256color
+#term xterm-256color
+msgwait 10
+hardcopy_append on
+#emulate .logout message
+#pow_detach_msg "Screen session of $LOGNAME $:cr:$:n1:ended."
+pow_detach_msg "Screen session of $LOGNAME ended."
+
+
+# -----------------------------------------------------------------------
+
+# turn off flow control so that Ctrl-s or Ctrl-a s dont kill the irssi session
+#stty -ixon -ixoff
+
+# Window numbering starts at 0
+bind c screen 1
+# bind 0 select 10
+
+# -------------------------
+#Screen window numbers and placement
+
+# my irssi screen :) -- Not used anymore as i have a dedicated screenrc.irc file.. better as i prefer to have my ssh connections seperate
+# screen -t irc 1 /opt/local/bin/irssi
+
+# bash screens
+screen -t "boss" 
+#screen -t "root" 9 su
+screen -t root 8 $HOME/.bscripts/_ScreenAppz root
+screen -t root 9 $HOME/.bscripts/_ScreenAppz root
+#screen -t "irssi" 8 irssi
+screen -t "<>" 2
+screen -t "<>" 1
+#screen 3 
+
+# my vim screenvim: syntax=screen
+
+
+# ----------------------------------------------------------------------
+
+# LOGS AND SSH KEYCHAINS     
+# set the ssh-agent on my workstation to forward my ssh key through my screen windows
+# . .keychain/<hostname>-sh
+#
+# this will log screen errors to a daily log under the speficied directory
+logfile ~/Logs/screen/screen_%y-%m-%d_%0c
+logtstamp on
+logtstamp after 250
+
+
+# advertise hardstatus support to $TERMCAP
+ termcapinfo  * '' 'hs:ts=\E_:fs=\E\\:ds=\E_\E\\'
+
+# ----------------------------------------------------------------------
+# fix scrollback in putty (edit: and for Mac Terminal)
+termcapinfo *rxvt* ti@:te@
+termcapinfo *xterm* ti@:te@
+
+
+
+
+# 256 colours #
+#
+# http://frexx.de/xterm-256-notes/
+# http://pjkh.com/articles/osx-iterm-screen-vim-256-colors.html
+
+# terminfo and termcap for nice 256 color terminal
+# use bright colors for bold text
+attrcolor b ".I"
+# tell screen how to set colors. AB=background, AF=foreground
+#termcapinfo xterm*       'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm'
+#terminfo    xterm-256color  'Co#256:AB=\E[40;0;%dm:AF=\E[35;0;%dm'
+#termcap     xterm-256color  'Co#256:AB=\E[40;0;%dm:AF=\E[35;0;%dm'
+#termcapinfo xterm-256color  'Co#256:AB=\E[40;0;%dm:AF=\E[35;0;%dm'
+
+##terminfo    screen-256color  'Co#256:AB=\E[40;0;%dm:AF=\E[35;0;%dm'
+##termcap     screen-256color  'Co#256:AB=\E[40;0;%dm:AF=\E[35;0;%dm'
+#termcapinfo  screen-256color  'Co#256:AB=\E[40;0;%dm:AF=\E[35;0;%dm'
+#termcapinfo  xterm*  'Co#256:AB=\E[40;0;%dm:AF=\E[35;0;%dm'
+
+#termcapinfo xterm* 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm' 
+
+termcapinfo xterm-256color 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm' 
+termcapinfo *-256color 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm' 
+#termcap xterm-256color 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm' 
+#terminfo xterm-256color 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm' 
+
+
+termcapinfo screen-256color 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm' 
+termcap screen-256color 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm' 
+terminfo screen-256color 'Co#256:AB=\E[48;5;%dm:AF=\E[38;5;%dm' 
+
+
+
+# erase background with current bg color
+defbce "on"
+defbce on
+
+
+# -----------------------------------------------------------------------
+
+# # =====================================================================
+# # Password
+# # =====================================================================
+#
+# # # # password YOUR-PASSWORD-HERE
+#
+#
+# # WARNING!!  Do NOT remove the comment
+# # if you don't know what this does!
+# # read on:
+# # this commands sets the *internal*
+# # password for the screen session.
+# # if this is set then a "lock" command will
+# # only let you in to the session after you
+# # enter the user's account password and then
+# # also the internal password for that session.
+# # so this gives additional safety.
+# # but if you forget the internal password
+# # then you can also forget about the session - ok?!
+
+
+
+
+
+
+
+
+#facit's "al" / "dl"  are buggy if the current / last line
+#contain attributes...
+termcap  facit al=\E[L\E[K:AL@:dl@:DL@:cs=\E[%i%d;%dr:ic@
+terminfo facit al=\E[L\E[K:AL@:dl@:DL@:cs=\E[%i%p1%d;%p2%dr:ic@
+
+
+#make sun termcap/info better
+termcap  sun 'up=^K:AL=\E[%dL:DL=\E[%dM:UP=\E[%dA:DO=\E[%dB:LE=\E[%dD:RI=\E[%dC:IC=\E[%d@:WS=1000\E[8;%d;%dt'
+terminfo sun 'up=^K:AL=\E[%p1%dL:DL=\E[%p1%dM:UP=\E[%p1%dA:DO=\E[%p1%dB:LE=\E[%p1%dD:RI=\E[%p1%dC:IC=\E[%p1%d@:WS=\E[8;%p1%d;%p2%dt$<1000>'
+
+
+
+
+
+################
+#
+# xterm tweaks
+#
+
+#xterm understands both im/ic and doesn't have a status line.
+#Note: Do not specify im and ic in the real termcap/info file as
+#some programs (e.g. vi) will not work anymore.
+termcap  xterm* hs@:cs=\E[%i%d;%dr:im=\E[4h:ei=\E[4l
+terminfo xterm* hs@:cs=\E[%i%p1%d;%p2%dr:im=\E[4h:ei=\E[4l
+
+#80/132 column switching must be enabled for ^AW to work
+#change init sequence to not switch width
+termcapinfo  xterm* 'Z0=\E[?3h:Z1=\E[?3l:is=\E[r\E[m\E[2J\E[H\E[?7h\E[?1;4;6l'
+#termcapinfo xterm* 'is=\E[r\E[m\E[2J\E[H\E[?7h\E[?1;4;6l'
+
+# Make the output buffer large for (fast) xterms.
+termcapinfo xterm* OL=1000
+#termcapinfo xterm* OL=100
+
+# tell screen that xterm can switch to dark background and has function
+# keys.
+termcapinfo xterm* 'VR=\E[?5h:VN=\E[?5l'
+termcapinfo xterm* 'k1=\E[11~:k2=\E[12~:k3=\E[13~:k4=\E[14~'
+termcapinfo xterm* 'kh=\EOH:kI=\E[2~:kD=\E[3~:kH=\EOF:kP=\E[5~:kN=\E[6~'
+
+# special xterm hardstatus: use the window title.
+termcapinfo xterm* 'hs:ts=\E]2;:fs=\007:ds=\E]2;screen\007'
+
+#terminfo xterm* 'vb=\E[?5h$<200/>\E[?5l'
+termcapinfo xterm* 'vi=\E[?25l:ve=\E[34h\E[?25h:vs=\E[34l'
+
+# emulate part of the 'K' charset
+termcapinfo   xterm* 'XC=K%,%\E(B,[\304,\\\\\326,]\334,{\344,|\366,}\374,~\337'
+
+# xterm-52 tweaks:
+# - uses background color for delete operations
+termcapinfo xterm* be
+
+################
+#
+# wyse terminals
+#
+
+#wyse-75-42 must have flow control (xo = "terminal uses xon/xoff")
+#essential to have it here, as this is a slow terminal.
+termcapinfo wy75-42 xo:hs@
+
+# New termcap sequences for cursor application mode.
+termcapinfo wy* CS=\E[?1h:CE=\E[?1l:vi=\E[?25l:ve=\E[?25h:VR=\E[?5h:VN=\E[?5l:cb=\E[1K:CD=\E[1J
+
+################
+#
+# other terminals
+#
+
+# make hp700 termcap/info better
+termcapinfo  hp700 'Z0=\E[?3h:Z1=\E[?3l:hs:ts=\E[62"p\E[0$~\E[2$~\E[1$}:fs=\E[0}\E[61"p:ds=\E[62"p\E[1$~\E[61"p:ic@'
+
+
+# Extend the vt100 desciption by some sequences.
+termcap  vt100* ms:AL=\E[%dL:DL=\E[%dM:UP=\E[%dA:DO=\E[%dB:LE=\E[%dD:RI=\E[%dC
+terminfo vt100* ms:AL=\E[%p1%dL:DL=\E[%p1%dM:UP=\E[%p1%dA:DO=\E[%p1%dB:LE=\E[%p1%dD:RI=\E[%p1%dC
+termcapinfo linux C8
+# old rxvt versions also need this
+# termcapinfo rxvt C8
+
+
+
+
+
+
+
+
+
+
+
+
+
+##------------------- ------------------------------------------------------------
+##            screenrc - Robbie (d_______e@gmail.com)
+##  
+##-------------------------------------------------------------------------------s
+#screen -t vim 4 /opt/local/bin/vim
+#screen -t vim 5 /opt/local/bin/vim
+
+# links web browser 
+#screen -t web 6 /opt/local/bin/links http://www.scroogle.org/cgi-bin/scraper.htm
+#screen -t irssi-docs 6 /opt/local/bin/links http://www.irssi.org/documentation
+
+# ssh connections
+#screen -t serv 6 ssh Boss@192.168.2.14
+#screen -t router 7 ssh root@192.168.2.1
+
+# mc does not want to quit cleanly :(
+# screen -t mc 7 /opt/local/bin/mc
+#
+# screen -t #! 10 -$SHELL
+
+# -----------------------------------------------------------------------
+# For VIM users, include this vim modeline, in your default screenrc settings
+# Your produced screenrc file will have screen
+
+
