@@ -2,7 +2,7 @@
 
 # set variables
 rtime=$(datime)
-builduser=$(cat ${HOME}/.config/bscripts/cower-blind-update.$(hostname).conf 2> /dev/null)
+builduser=$(cat ${HOME}/.config/bscripts/cower-blind-update.${HOSTNAME}.conf 2> /dev/null)
 [[ -n $builduser ]] && buHome=$( grep builder /etc/passwd | cut -d':' -f6 )
 [[ -n $buHome ]] && funDir="${buHome}/cower-blind-updates/${rtime}"
 
@@ -23,7 +23,7 @@ a=${1,,}
 if [[ "$a" == "set-build-user" ]] && [[ -n $2 ]]; then
     # set build-user
     mkdir -p  ${HOME}/.config/bscripts
-    echo $2 > ${HOME}/.config/bscripts/cower-blind-update.$(hostname).conf
+    echo $2 > ${HOME}/.config/bscripts/cower-blind-update.${HOSTNAME}.conf
     exit
 elif [[ "$a" == "help" || "$a" == "--help" || "$a" == "-help" ]]; then
     help $1

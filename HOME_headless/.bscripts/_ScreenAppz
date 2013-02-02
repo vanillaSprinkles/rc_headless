@@ -88,8 +88,8 @@ fi
 
 if [ "${i}" == "synergyc" ]; then
     while [ 1 ]; do
-        if [[ -f  ${HOME}/.config/bscripts/WM.$(hostname).synergyc ]]; then
-	    CFG=( $(cat ~/.config/bscripts/WM.$(hostname).synergyc) )
+        if [[ -f  ${HOME}/.config/bscripts/WM.${HOSTNAME}.synergyc ]]; then
+	    CFG=( $(cat ~/.config/bscripts/WM.${HOSTNAME}.synergyc) )
 	    IP=${CFG[0]}
 	    DBG=${CFG[1]}
 	    [[ -z $DBG ]] && DBG="NOTE"
@@ -98,7 +98,7 @@ if [ "${i}" == "synergyc" ]; then
 	    synergyc -f -d $DBG $IP
 	    ## ERROR WARNING NOTE INFO DEBUG DEBUG1 DEBUG2
 	else 
-	    echo "no file ${HOME}/.config/bscritps/WM.$(hostname).synergyc"
+	    echo "no file ${HOME}/.config/bscritps/WM.${HOSTNAME}.synergyc"
 	    echo "  generate with: WM setsynergyc <ip> <debug-level>"
 #	    exit
 	fi

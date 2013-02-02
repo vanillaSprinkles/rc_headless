@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-confFile="${XDG_CONFIG_HOME}/bscripts/HomeDotSync.$(hostname).${USER}.conf"
+confFile="${XDG_CONFIG_HOME}/bscripts/HomeDotSync.${HOSTNAME}.${USER}.conf"
 confFileWorkHeadless="${XDG_CONFIG_HOME}/bscripts/HomeDotSync.Work.Headless.conf"
 
 
@@ -87,7 +87,7 @@ echo "   output folder: ${DotFiles}"
 ## imported
 CONFIGf="${XDG_CONFIG_HOME}"
 CONFIGfr="${XDG_CONFIG_HOME//./\\.}"
-uhf="$(${GREP} $(id -un) /etc/passwd | cut -d':' -f6)"
+uhf="$(${GREP} ${USER} /etc/passwd | cut -d':' -f6)"
 dCONFIG="${XDG_CONFIG_HOME//${uhf}\//}"
 dCONFIGr="${dCONFIG//./\\.}"
 #echo "${uhf} /   ${dCONFIG}"

@@ -5,8 +5,8 @@ if [[ $arg1 == "setsynergycip" || $arg1 == "set" ]]; then
     if [[ -z $2 ]]; then
 	arg1="" 
     else
-	echo ${2} > ~/.config/bscripts/WM.$(hostname).synergyc
-	echo ${3} >> ~/.config/bscripts/WM.$(hostname).synergyc
+	echo ${2} > ~/.config/bscripts/WM.${HOSTNAME}.synergyc
+	echo ${3} >> ~/.config/bscripts/WM.${HOSTNAME}.synergyc
 	exit
     fi
 elif [[ $arg1 == "fix" ]]; then

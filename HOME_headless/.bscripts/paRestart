@@ -1,3 +1,6 @@
 #!/bin/bash
 
-pulseaudio --kill ; sudo killall pulseaudio  ;  pulseaudio --start ; sudo systemctl restart alsa-restore
+pulseaudio --kill ; 
+sudo killall pulseaudio  ;  
+pulseaudio --start ; 
+sudo systemctl restart alsa-restore

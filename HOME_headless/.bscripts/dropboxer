@@ -3,7 +3,7 @@
  #*******************************
  # Multiple dropbox instances
  #*******************************
- dboxUsr=$( cat ~/.config/bscripts/dropboxer.$(hostname).conf )
+ dboxUsr=$( cat ~/.config/bscripts/dropboxer.${HOSTNAME}.conf )
  dboxHom=$( cat /etc/passwd | grep ${dboxUsr} | cut -d':' -f6 )
 
  dropboxes=( $(cat $dboxHom/.dboxes) )
