@@ -75,13 +75,14 @@ if [ "${i}" == "WM" ]; then
         if [[ -f $WMFILE ]]; then
 	    echo -e "executing $(cat $WMFILE) with user ${USER} in 'tty' mode via ssh -tt:"
 #	    ssh -tt localhost "source ${HOME}/.bash_profile && ${HOME}/.bscripts/x $(cat ${WMFILE} )"
+#sleep 1000s
 	    ${HOME}/.bscripts/x $(cat $WMFILE)
 	else 
 	    echo "no file $WMFILE"
 	    exit
 	fi
         clear
-        sleep 13s
+        sleep 7s
     done
 fi
 

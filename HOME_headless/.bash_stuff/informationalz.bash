@@ -1,6 +1,6 @@
 #!/bin/bash
 
-alias hardwareInfo="echo -e ' lspci -vv\n hwinfo'"
+alias hardwareInfo="echo -e ' lspci -vv\n hwinfo\n dmidecode'"
 
 
 
