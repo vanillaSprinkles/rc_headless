@@ -1,7 +1,7 @@
 #!/bin/bash
 
-EDITOR=$(which emacs)
+EDITOR=$(which emacs 2>/dev/null)
 export EDITOR
-BROWSER=$(which ironL)
+BROWSER=$(which ironL 2>/dev/null)
 export EDITOR
 

@@ -1,5 +1,6 @@
 #!/bin/bash
 
+GREP="$(which grep)"
 if [[ -z ${1} ]]; then
     date '+%Y-%m-%d__%H.%M.%S'
     exit
@@ -14,6 +15,7 @@ function help() {
     echo " < t2 | t- >   dash-delineated"
     echo " < t3 | t._ >   dot-underscore-delineated"
     echo " < t4 | t-_ >   dash-underscore-delineated"
+    echo " <any above command> <format>   prints the format string"
     exit
 }
 
@@ -22,9 +24,15 @@ function help() {
 a=${1,,}
 b=${2,,}
 c=${3,,}
+d=${4,,}
 
-if [[ -n $(echo "$a $b" | $(which grep) "help")  ]]; then
+if [[ -n $(echo "${@,,}" | ${GREP} "help")  ]]; then
     help 
+fi
+
+pform=0
+if [[ -n $(echo "$a $b $c $d" | ${GREP} "format")  ]]; then
+    pform=1
 fi
 
 Delin=0
@@ -33,12 +41,12 @@ NanoS=0
 D='.'; DS='__'
 
 
-NOend=$(echo "$a $b $c" | grep -Eo "nos|nom" | sed 's/ //g')
-NanoS=$(echo "$a $b $c" | grep -Eo "ns" | sed 's/ //g')
+NOend=$(echo "$a $b $c $d" | ${GREP} -Eo "nos|nom" | sed 's/ //g')
+NanoS=$(echo "$a $b $c $d" | ${GREP} -Eo "ns" | sed 's/ //g')
 
 
 # set delin
-Delin=$(echo "$a $b $c" | grep -Eo "t[1-4]|t[.-.-]+[_]*" | sed 's/ //g')
+Delin=$(echo "$a $b $c $d" | ${GREP} -Eo "t[1-4]|t[.-.-]+[_]*" | sed 's/ //g')
 [[ -n $Delin ]] && case $Delin in
     t1|t.)
 	D='.'
@@ -80,5 +88,5 @@ fi
 
 
 FRMT="+%Y${D}%m${D}%d${DS}%H${D}${TAIL}"
-date $FRMT
+[[ $pform == 0 ]] && date $FRMT || echo "$FRMT"
 
