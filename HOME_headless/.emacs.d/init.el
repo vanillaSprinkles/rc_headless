@@ -13,6 +13,26 @@
 (define-key function-key-map [delete] [deletechar])
 
 
+
+;; disable the automatic EOF generation in Shell Mode
+(eval-after-load "sh-mode" '(progn (define-key sh-mode-map (if "<" "<") (local-set-key "<" 'self-insert-command) )))
+;;; bpalmer  (eval-after-load "sh-mode" '(progn (define-key sh-mode-map (if ...))))
+;;; BAD FORM: bpalmer: shouldn't defvar something that's defined in a library
+;(defvar sh-use-prefix nil
+;  "If non-nil when loading, `$' and `<' will be  C-c $  and  C-c < .")
+;(defvar sh-mode-map
+;  (let ((map (make-sparse-keymap)))
+;    (define-key map (if sh-use-prefix "\C-c<" "<")
+;      (local-set-key "<" 'self-insert-command))
+;   map)
+;  "Keymap used in Shell-Script mode.")
+;; end automatic EOF in Shell Mode
+
+
+
+
+
+
 (custom-set-faces
 ;  use  C-u C-x =    see the face at cursor position
 ;
@@ -59,6 +79,36 @@
 ;    (modify-syntax-entry  ?%   "/"   fst-mode-syntax-table)  ; functions as escape char
 ;    fst-mode-syntax-table )
 ;  "Syntax table for fst-mode" )
+
+
+
+
+
+;;;;;;   gnuplot
+; To add the gnuplot mode in Emacs, add the content of /usr/share/emacs/site-lisp/dotemacs to your ~/.emacs file
+;;--------------------------------------------------------------------
+;; Lines enabling gnuplot-mode
+
+;; move the files gnuplot.el to someplace in your lisp load-path or
+;; use a line like
+;;  (setq load-path (append (list "/path/to/gnuplot") load-path))
+
+;; these lines enable the use of gnuplot mode
+  (autoload 'gnuplot-mode "gnuplot" "gnuplot major mode" t)
+  (autoload 'gnuplot-make-buffer "gnuplot" "open a buffer in gnuplot mode" t)
+
+;; this line automatically causes all files with the .gp extension to
+;; be loaded into gnuplot mode
+  (setq auto-mode-alist (append '(("\\.gp$" . gnuplot-mode)) auto-mode-alist))
+
+;; This line binds the function-9 key so that it opens a buffer into
+;; gnuplot mode
+  (global-set-key [(f9)] 'gnuplot-make-buffer)
+
+;; end of line for gnuplot-mode
+;;--------------------------------------------------------------------
+
+
 
 
 

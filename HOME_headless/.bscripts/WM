@@ -1,6 +1,21 @@
 #!/bin/bash
 
+
+help () {
+    echo "${0##*/} --help  |  <setsynergycip | set>  <ip>  |  <window manager> (<force>)"
+    echo "   --help: displays this help message"
+    echo -e "   setsynergyc <ip> (<debug-level>)\n     sets synergyc ip address and debug level (ERROR WARNING NOTE INFO DEBUG DEBUG1 DEBUG2)\n     Default Debug Level: NOTE"
+    echo -e "   <window manager> force\n     opens the specified Window Manager regardless if WM has already been called"
+    echo -e "   <window manager>\n     opens Window Manager via 'ssh -tt' in a screen session to emulate tty execution"
+    exit
+
+}
+
+
+
 arg1=${1,,}
+
+## synergy config - Set config
 if [[ $arg1 == "setsynergycip" || $arg1 == "set" ]]; then
     if [[ -z $2 ]]; then
 	arg1="" 
@@ -15,17 +30,34 @@ elif [[ $arg1 == "fix" ]]; then
 fi
 
 
-[[ -z $arg1 ]] && echo -en "Use ${0} --help\nRequires one of the following available Window Managers: \n  " &&x check && exit
+## no arguments, print Help 
+[[ -z $arg1 ]] && echo -en "Use ${0} --help\nRequires one of the following available Window Managers: \n  " && ~/.bscripts/x check && exit
 if [[ ${arg1,,} == "--help" || ${arg1,,} == "help" ]]; then
-    echo "$0  --help  |  <setsynergycip | set>  <ip>  |  <window manager>"
+    help ${1}
+    
+    echo "$0  --help  |  <setsynergycip | set>  <ip>  |  <window manager> (<force>)"
     echo "  --help: displays this help message"
     echo -e "  setsynergyc <ip> (<debug-level>): sets synergyc ip address and debug level (ERROR WARNING NOTE INFO DEBUG DEBUG1 DEBUG2)\n    Default Debug Level: NOTE"
+    echo "  <window manager> force: opens the specified Window Manager regardless if WM has already been called"
     echo "  <window manager>: opens Window Manager via 'ssh -tt' in a screen session to emulate tty execution"
     exit
 fi
 
+arg2=${2,,}
+## check of a WM is open
+WMs="$(screen -ls | grep -E "^\s*[0-9]*\.WM_[a-Z0-9]*\s\([a-Z]*\)")"
 
 
+if test -n "${WMs}" && test "$arg2" != "force"; then
+    echo "open window managers: "
+    echo -e "${WMs}\n"
+    help "help"
+  exit
+fi
+
+
+
+## do the needful
 mkdir -p /tmp/bscripts 
 echo "${arg1}" > /tmp/bscripts/${USER}-WM.tmp
 $($(which screen) -S WM_$1  -c ~/.config/bscripts/WM.screenrc )

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#.local/share/Steam/SteamApps/common/Serious Sam 3/Bin/runSam3_DedicatedServer.sh
+
+
+SS3dedi="${HOME}/.local/share/Steam/SteamApps/common/Serious Sam 3/Bin/runSam3_DedicatedServer.sh"
+CONFIG="${HOME}/.config/Steam/SS3.dedi.conf"
+#sMAP="Content\SeriousSam3\Levels\01_BFE\10_LostNubianTemples\10_LostNubianTemples.wld"
+sMAP="Content/SeriousSam3/Levels/01_BFE/10_LostNubianTemples/10_LostNubianTemples.wld"
+sMAP="Content/SeriousSam3/Levels/01_BFE/10_LostNubianTemples/10_LostNubianTemples.wld"
+
+
+#"${SS3dedi}"  +exec "${CONFIG}" +map "${sMAP}"  +gam_idGameMode "Cooperative"
+#"${SS3dedi}"   +gam_idGameMode "CooperativeStandard" 
+# +gameoptions
+"${SS3dedi}"  +gameoptions "$CONFIG" 
+

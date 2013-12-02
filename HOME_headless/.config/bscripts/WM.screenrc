@@ -240,6 +240,7 @@ bind c screen 1
 # bash screens
 screen -t "boss" 
 screen -t       root 9 $HOME/.bscripts/_ScreenAppz root
+screen -t "random" 5
 #screen -t "devilspie" 4 $HOME/.bscripts/_ScreenAppz devilspie
 screen -t "xcompmgr"  3 $HOME/.bscripts/_ScreenAppz xcompmgr
 screen -t "synergyc"  2 $HOME/.bscripts/_ScreenAppz synergyc

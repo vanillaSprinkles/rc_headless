@@ -1,8 +1,11 @@
 #!/bin/bash
 
-
-confFile="${XDG_CONFIG_HOME}/bscripts/HomeDotSync.${HOSTNAME}.${USER}.conf"
-confFileWorkHeadless="${XDG_CONFIG_HOME}/bscripts/HomeDotSync.Work.Headless.conf"
+DER_HOME="${XDG_CONFIG_HOME}"
+if [ -z $XDG_CONFIG_HOME ]; then
+    DER_HOME="${HOME}/.config"
+fi
+confFile="${DER_HOME}/bscripts/HomeDotSync.${HOSTNAME}.${USER}.conf"
+confFileWorkHeadless="${DER_HOME}/bscripts/HomeDotSync.Work.Headless.conf"
 
 
 
@@ -85,10 +88,10 @@ echo "   output folder: ${DotFiles}"
 
 ### needs work here for dynamic  XDG_CONFIG_HOME   ###
 ## imported
-CONFIGf="${XDG_CONFIG_HOME}"
-CONFIGfr="${XDG_CONFIG_HOME//./\\.}"
+CONFIGf="${DER_HOME}"
+CONFIGfr="${DER_HOME//./\\.}"
 uhf="$(${GREP} ${USER} /etc/passwd | cut -d':' -f6)"
-dCONFIG="${XDG_CONFIG_HOME//${uhf}\//}"
+dCONFIG="${DER_HOME//${uhf}\//}"
 dCONFIGr="${dCONFIG//./\\.}"
 #echo "${uhf} /   ${dCONFIG}"
 #echo "${CONFIGf}   ${CONFIGfr}"
@@ -365,7 +368,7 @@ for (( itr=0;itr<sz_allDF;itr++ )); do
     done
 done
 # find all files/folders in .config, blank out sync'd ones
-allCFGFiles=( $(find -L ${XDG_CONFIG_HOME}/ -maxdepth 1 -name "*" | $GREP -v "/${dCONFIG}[/]*[.]*$" | $GREP -Ev "*~" | $GREP -Ev "#*#") )
+allCFGFiles=( $(find -L ${DER_HOME}/ -maxdepth 1 -name "*" | $GREP -v "/${dCONFIG}[/]*[.]*$" | $GREP -Ev "*~" | $GREP -Ev "#*#") )
 sz_allDF_CFG=${#allCFGFiles[@]}
 for (( itr=0;itr<sz_allDF_CFG;itr++ )); do
     for (( i=0; i<sz_rCFG; i++ )); do
@@ -436,7 +439,7 @@ if [[ ${PrintSYNCFiles} == 1 || ${PrintSYNCFiles:2:1} == 1 ]]; then
     else
 	sort /tmp/dotfilesyncerouts.dunnos
     fi
-    echo "$($GREP -v "^[ ]*$" /tmp/dotfilesyncerouts.dunnos | wc -l)  not specified files"
+    echo "$($GREP -v "^[ ]*$" /tmp/dotfilesyncerouts.dunnos | wc -l)  not specified items"
     rm -f /tmp/dotfilesyncerouts.dunnos
 #    echo -e "$(($sz_allDF+$sz_allDF_CFG))"
 fi

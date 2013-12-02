@@ -14,10 +14,15 @@ alias ReSourceR='reset; source ${HOME}/.bash_profile; ping 127.0.0.1 -c 2 > /dev
 alias ls='ls --color=auto'
 alias lL='ls -lh'
 alias ll='ls -Alh'
+alias llC='ls -Alh --color=always'
 alias li='ll -i'
+alias liC='ll -i --color=always'
 alias lT='ls -Alh --sort=time'
+alias lTC='ls -Alh --sort=time --color=always'
 alias lS='ls -AlhS'
+alias lSC='ls -AlhS --color=always'
 alias l='li'
+alias lC='li --color=always'
 alias rm='rm -i'
 alias mv='mv -i'
 alias cp='cp -i'
@@ -27,6 +32,12 @@ alias less='less -R'
 alias head='head -n 20'
 alias cd..='cd ..'
 alias cd..ll='cd ..; ll'
+
+### comon typos
+alias clcear="clear"
+alias emcas="emacs"
+### end typos
+
 
 
 alias ccrap='echo "";rm -fv *~;rm -fv \#*\#;rm -fv \.*~;rm -fv \.\#*\#;echo ""; ls -ah'
@@ -47,7 +58,8 @@ alias netstatNET='netstat -alnp --protocol=inet | grep -v CLOSE_WAIT | cut -c-6,
 alias mrd='xset m 0 0 &'
 alias mtp='xset m 4 5 &'
 
-alias fehS='feh -dZ.Y --min-dimension 0x768 -B black'
+#alias fehS='feh -dZ.Y --min-dimension 1x768 -B black'
+alias fehS='feh -dZ.Y  -B black; echo feh -dZ.Y -B black $1'
 
 
 emcas='emacs'

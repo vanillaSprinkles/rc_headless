@@ -1,0 +1,13 @@
+#!/bin/bash
+
+Uls=( $(w -sh | awk '{print $1}' | sort -u) )
+sudo echo "rebooting now"
+for U in ${Uls[@]}; do
+  echo -e "shutdown now" | write ${U}
+done
+#echo ${Uls[@]}
+
+sudo systemctl stop sshd
+sudo shutdown -r now
+
+#systemctl reboot

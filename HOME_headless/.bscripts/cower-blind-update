@@ -13,11 +13,15 @@ function help() {
     echo -e "${0##*/}  ${1}\n    displays this help text"
     echo -e "${0##*/}\n    does a blind update with current selected user '${builduser:-<build-user>}', prompts to: edit PKGBUILDs and install package"
     echo -e "${0##*/}  set-build-user  <build-user>\n    sets the builduser to <build-user>"
+    echo -e "${0##*/}  install-from-folder <path-to-folder>"
+    echo -e "${0##*/}  smart-redo <path-to-folder>\n    builds non-built packages and installs them"
+    echo -e "${0##*/}  list-update-folders\n    list cower-blind-update downloads folders"
     echo -e "${0##*/}  <(anytext)>\n    does a super blind update with current selected user '${builduser:-<build-user>}', does not prompt: to edit PKGBUILDS or install package"
     exit
 }
 
 a=${1,,}
+mode=0
 # parameter check
 [[ -z $builduser ]] && echo -e "Error, no build user, run: $0 set-build-user <build-user>\n" && help && exit
 if [[ "$a" == "set-build-user" ]] && [[ -n $2 ]]; then
@@ -25,12 +29,26 @@ if [[ "$a" == "set-build-user" ]] && [[ -n $2 ]]; then
     mkdir -p  ${HOME}/.config/bscripts
     echo $2 > ${HOME}/.config/bscripts/cower-blind-update.${HOSTNAME}.conf
     exit
+elif [[ "$a" == "install-from-folder" ]]; then
+    funDir="${2}"
+    mode=1
+    #instPrev
+elif [[ "$a" == "smart-redo" || "$a" == "redo" ]]; then
+    funDir="${2}"
+    mode=2
+    if [ -z "${2}" ]; then
+	help $1
+    fi
+    #smart-redo
 elif [[ "$a" == "help" || "$a" == "--help" || "$a" == "-help" ]]; then
     help $1
-##elif [[ "$a" =~ "--" ]]; then
-## TODO
-##    echo  "two dashes" && exit
-# super blind mode
+  ##elif [[ "$a" =~ "--" ]]; then
+  ## TODO
+  ##    echo  "two dashes" && exit
+  # super blind mode
+elif [[ "$a" == "list-update-folders" || "$a" == "list-update-folder" || "$a" == "update-folders" || "$a" == "folders" || "$a" == "list" ]]; then
+    find "${buHome}/cower-blind-updates/"* -maxdepth 0 -type d
+    exit
 elif [[ -n $1 ]]; then
     sblind=1
 else
@@ -38,30 +56,43 @@ else
 fi
 
 
+
 # edit? and make package
 instPkgs=()
 instPkgsP=()
 
-# create sub-folder in builduser homefolder (or wherever) and chmod it and parent folders
-buHomeSC=$(($(echo ${buHome} | sed 's/[^/]//g' | wc -m)-1))
-funDirSC=$(($(echo ${funDir} | sed 's/[^/]//g' | wc -m)-1))
-sudo su - ${builduser} -c "mkdir -vp ${funDir}"
-if (( ($funDirSC - $buHomeSC) > 0 )); then
-    subHome=${funDir:${#buHome}+1:${#funDir} }
-    chFolder=$buHome
-    for (( i=1; i<=($funDirSC - $buHomeSC); i++ )); do
-	subHomeS=$(echo $subHome | cut -d'/' -f${i})
-	chFolder="${chFolder}/${subHomeS}"
-	sudo su - ${builduser} -c "chmod 775  $chFolder"
-    done
+if (( $mode == 0 )); then
+ # create sub-folder in builduser homefolder (or wherever) and chmod it and parent folders
+ buHomeSC=$(($(echo ${buHome} | sed 's/[^/]//g' | wc -m)-1))
+ funDirSC=$(($(echo ${funDir} | sed 's/[^/]//g' | wc -m)-1))
+ sudo su - ${builduser} -c "mkdir -vp ${funDir}"
+ if (( ($funDirSC - $buHomeSC) > 0 )); then
+     subHome=${funDir:${#buHome}+1:${#funDir} }
+     chFolder=$buHome
+     for (( i=1; i<=($funDirSC - $buHomeSC); i++ )); do
+ 	 subHomeS=$(echo $subHome | cut -d'/' -f${i})
+ 	 chFolder="${chFolder}/${subHomeS}"
+ 	 sudo su - ${builduser} -c "chmod 775  $chFolder"
+     done
+ fi
 fi
 
-sudo su - ${builduser} -c "source /etc/profile; cower -ddu -t ${funDir}; chmod 755 ${funDir}/* 2>/dev/null"
+# switches to build-user and sources user's profile
+if (( $mode == 2 )); then
+  sudo su - ${builduser} -c "source /etc/profile; cower -ddu -t ${funDir} 2>/dev/null; chmod 755 ${funDir}/* 2>/dev/null"
+else
+  sudo su - ${builduser} -c "source /etc/profile; cower -ddu -t ${funDir}; chmod 755 ${funDir}/* 2>/dev/null"
+fi
 dirs=$( find ${funDir}/* -maxdepth 0 -type d  2>/dev/null)
 [[ -z $dirs ]] && rmdir -v ${funDir} && echo "no updates" &&  exit
 
+
+
+# get all packages to build, also build them (with makepkg)
 #for d in ${funDir}/*; do
-for d in $dirs; do
+srDirs=()
+if (( $mode == 0 )); then
+  for d in $dirs; do
     if [[ $sblind == 0 && -n $EDITOR ]]; then
 	echo -n "edit ${d##*/} PKGBUILD?  y/n: "
 	read yay
@@ -72,7 +103,24 @@ for d in $dirs; do
     sudo su - ${builduser} -c "source /etc/profile; cd ${d}; makepkg PKGBUILD"
     instPkgs+=( "${d##*/}" )
     instPkgsP+=( "${d}/${d##*/}*.tar.xz" )
-done
+  done
+elif (( $mode == 1 )); then
+  # install previous section
+  for d in $dirs; do
+    instPkgs+=( "${d##*/}" )
+    instPkgsP+=( "${d}/${d##*/}*.tar.xz" )
+  done
+elif (( $mode == 2  )); then
+  # smart-redo - builds non-built packages and installs
+  for d in $dirs; do
+    if [ -z "$(ls "${d}"/*.tar.xz 2>/dev/null)" ]; then
+	srDirs+=("${d}")
+	sudo su - ${builduser} -c "source /etc/profile; cd ${d}; makepkg PKGBUILD"
+	instPkgs+=( "${d##*/}" )
+	instPkgsP+=( "${d}/${d##*/}*.tar.xz" )
+    fi
+  done
+fi
 
 
 # install all packages from one line
@@ -85,5 +133,11 @@ if [[ $sblind == 0 ]]; then
     fi
 else
     sudo pacman -U ${instPkgsP[@]}
+fi
+
+if (( $mode == 2 )); then
+  for d in ${srDirs[@]}; do
+      echo -e "${d}"
+  done
 fi
 

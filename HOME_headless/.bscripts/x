@@ -6,11 +6,15 @@
 # function x
 
 ## wm checker
-wms=$(pacman -Qs window manager | /usr/bin/grep "^local" | sed "s/^local\///" | awk '{ if ($1 != "obconf" && $1 != "screen" && $1 != "screen-vs" && $1 != "xcb-util-wm"  && $1 != "wmctrl-with-undecorated-support" ) print $1}')
-for i in $wms; do
-  if [[ "$i" == "i3-git" ]]; then wms="${wms} i3"; fi
-  if [[ "$i" == "wmii-hg" ]]; then wms="${wms} wmii"; fi
+wms=$(pacman -Qs window manager | /usr/bin/grep "^local" | sed "s/^local\///" | awk '{ if ($1 != "obconf" && $1 != "screen" && $1 != "xcompmgr" && $1 != "screen-vs" && $1 != "xcb-util-wm"  && $1 != "wmctrl-with-undecorated-support" ) print $1}')
+for i in ${wms[@]}; do
+  if [[ "$i" == "i3-git" ]]; then wms=( ${wms[@]} "i3" ); fi
+  if [[ "$i" == "wmii-hg" ]]; then wms=( ${wms[@]} "wmii" ); fi
+  if [[ "$i" == "enlightenment" ]]; then wms=( ${wms[@]} "e16" ); fi
 done
+
+sorted=($(printf '%s\n' "${wms[@]}"|sort))
+wms=( ${sorted[@]} )
 
 
 ReD='\033[0;31m';    GrN='\033[0;32m';    DeF='\033[0m';
@@ -31,28 +35,28 @@ scr_hid=0
 match=0
 if [[ $scr_hid == 1 ]]; then
   mode=${1};	wm=${2};
-  for i in $wms; do	if [[ "$i" == "${wm}" ]]; then match=1; fi;    done
+  for i in ${wms[@]}; do	if [[ "$i" == "${wm}" ]]; then match=1; fi;    done
   if (( $match==0 )); then
     echo -e "${ReD}x: invalid operand\n${DeF}Useage: x  <check>  |  <window manger> [hide | screen]"
-    echo -en "  Window Managers: ";  for x in $wms; do   echo -e -n "${x}  ";	done;	echo -e "${DeF}"
+    echo -en "Window Managers:\n  ";  for x in ${wms[@]}; do   echo -e -n "${x}  ";	done;	echo -e "${DeF}"
     return
   fi
 elif [[ $scr_hid == 2 ]]; then
   mode=${2};	wm=${1};
-  for i in $wms; do	if [[ "$i" == "${wm}" ]]; then match=1; fi;    done
+  for i in ${wms[@]}; do	if [[ "$i" == "${wm}" ]]; then match=1; fi;    done
   if (( $match==0 )); then
     # glitches here
     echo -e "${ReD}x: invalid  window manager: '${wm}', exiting.'${DeF}"
-    echo -en "  Window Managers: ";  for x in $wms; do   echo -e -n "${x}  ";	done;	echo -e "${DeF}"
+    echo -en "Window Managers:\n  ";  for x in ${wms[@]}; do   echo -e -n "${x}  ";	done;	echo -e "${DeF}"
     return
   fi
 else
-  for i in $wms; do	if [[ "$i" == "${1}" ]]; then match=1; fi;    done
+  for i in ${wms[@]}; do	if [[ "$i" == "${1}" ]]; then match=1; fi;    done
   if (( $match==0 )); then
-    for i in $wms; do	if [[ "$i" == "${2}" ]]; then match=1; fi;    done
+    for i in ${wms[@]}; do	if [[ "$i" == "${2}" ]]; then match=1; fi;    done
     if (( $match==0)); then
       echo -e "${ReD}x: invalid operand\n${DeF}Useage: x  <check>  |  <window manger> [hide | screen]"
-      echo -en "  Window Managers: ";  for x in $wms; do   echo -e -n "${x}  ";	done;	echo -e "${DeF}"
+      echo -en "Window Managers:\n  ";  for x in ${wms[@]}; do   echo -e -n "${x}  ";	done;	echo -e "${DeF}"
       return
     else
       wm=${2};	    mode=3  # wm in {2} and error in {1}
@@ -64,13 +68,22 @@ else
   fi
  fi
 
-if [[ "${wm}" == 'i3-git' ]]; then
-  wm="i3"
-else
-  if [[ "${wm}" == 'wmii-hg' ]]; then
-    wm="wmii"
-  fi
-fi
+
+case "${wm}" in
+    'i3-git')
+	wm="i3"
+	;;
+    'wmii-hg')
+	wm="wmii"
+	;;
+    'enlightenment')
+	wm="e16"
+	;;
+#    *) echo "should not have got here, exiting" 
+#	exit
+#	;;
+esac
+
 
 # deal with the .xinitrc file
 if [ ! -h $HOME/.xinitrc ]; then
@@ -95,6 +108,6 @@ esac
 
 } # end startx_helper
 
-[[ "$1" == "check" ]] &&   echo -en "" &&  for x in $wms; do   echo -e -n "${x}  ";     done &&  echo -e "${DeF}" && exit
+[[ "$1" == "check" ]] &&   echo -en "" &&  for x in ${wms[@]}; do   echo -e -n "${x}  ";     done &&  echo -e "${DeF}" && exit
 
 startx_helper "${@}"

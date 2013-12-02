@@ -74,9 +74,11 @@ if [ "${i}" == "WM" ]; then
 	WMFILE="/tmp/bscripts/${USER}-WM.tmp"
         if [[ -f $WMFILE ]]; then
 	    echo -e "executing $(cat $WMFILE) with user ${USER} in 'tty' mode via ssh -tt:"
+
 #	    ssh -tt localhost "source ${HOME}/.bash_profile && ${HOME}/.bscripts/x $(cat ${WMFILE} )"
 #sleep 1000s
 	    ${HOME}/.bscripts/x $(cat $WMFILE)
+
 	else 
 	    echo "no file $WMFILE"
 	    exit
@@ -110,6 +112,9 @@ fi
 
 
 if [ "${i}" == "xcompmgr" ] || [ "${i}" == "transset" ]; then
+    if (( 1 -lt $(pgrep "^e16$") )); then
+	exit
+    fi
     mkdir -p /tmp/bscripts
     echo 1 > /tmp/bscripts/screenAppz.xcompmgr
     while [ 1 ]; do
