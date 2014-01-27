@@ -10,7 +10,7 @@ wms=$(pacman -Qs window manager | /usr/bin/grep "^local" | sed "s/^local\///" | 
 for i in ${wms[@]}; do
   if [[ "$i" == "i3-git" ]]; then wms=( ${wms[@]} "i3" ); fi
   if [[ "$i" == "wmii-hg" ]]; then wms=( ${wms[@]} "wmii" ); fi
-  if [[ "$i" == "enlightenment" ]]; then wms=( ${wms[@]} "e16" ); fi
+#  if [[ "$i" == "enlightenment" ]]; then wms=( ${wms[@]} "e16" ); fi
 done
 
 sorted=($(printf '%s\n' "${wms[@]}"|sort))
@@ -76,8 +76,11 @@ case "${wm}" in
     'wmii-hg')
 	wm="wmii"
 	;;
+    'enlightenment17')
+	wm="enlightenment_start"
+	;;
     'enlightenment')
-	wm="e16"
+        wm="e16"
 	;;
 #    *) echo "should not have got here, exiting" 
 #	exit
@@ -100,7 +103,7 @@ touch ${HOME}/.xinitrc.extra
 case ${mode} in
   hide)
     /usr/bin/startx 1>&- 2>&- &	    ;;
-    screen)
+  screen)
     screen -d -m -S "startx_${wm}" /usr/bin/startx	    ;;
   *)
     /usr/bin/startx	    ;;

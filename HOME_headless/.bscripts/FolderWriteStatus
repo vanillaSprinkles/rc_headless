@@ -1,0 +1,5 @@
+#!/bin/bash
+
+FLDR="$1"
+
+lsof -d "^cwd,^r" | /bin/grep "${FLDR}" | awk '$4 ~ /^[0-9]+w/{print $4}'
