@@ -1,2 +1,1 @@
-set bg=dark
-set bg=dark
+source ~/.config/vim/vimrc
