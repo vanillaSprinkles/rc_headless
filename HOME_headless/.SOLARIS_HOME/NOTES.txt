@@ -1,0 +1,8 @@
+
+in Putty:  After you have logged in:
+1) right click on the Title bar
+2) Mouse down and select Change Settings
+3) Click Features from the left side
+4) Uncheck:
+Disable application keypad mode
+5) Click the Apply button
