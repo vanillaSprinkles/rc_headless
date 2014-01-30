@@ -22,6 +22,9 @@ function help() {
 
 a=${1,,}
 mode=0
+#PKGEXT='.pkg.tar'
+#PKGEXT='.tar.xz'
+
 # parameter check
 [[ -z $builduser ]] && echo -e "Error, no build user, run: $0 set-build-user <build-user>\n" && help && exit
 if [[ "$a" == "set-build-user" ]] && [[ -n $2 ]]; then
@@ -32,20 +35,20 @@ if [[ "$a" == "set-build-user" ]] && [[ -n $2 ]]; then
 elif [[ "$a" == "install-from-folder" ]]; then
     funDir="${2}"
     mode=1
-    #instPrev
+    #^ instPrev
 elif [[ "$a" == "smart-redo" || "$a" == "redo" ]]; then
     funDir="${2}"
     mode=2
     if [ -z "${2}" ]; then
 	help $1
     fi
-    #smart-redo
+    #^ smart-redo
 elif [[ "$a" == "help" || "$a" == "--help" || "$a" == "-help" ]]; then
     help $1
   ##elif [[ "$a" =~ "--" ]]; then
   ## TODO
   ##    echo  "two dashes" && exit
-  # super blind mode
+  #^ super blind mode
 elif [[ "$a" == "list-update-folders" || "$a" == "list-update-folder" || "$a" == "update-folders" || "$a" == "folders" || "$a" == "list" ]]; then
     find "${buHome}/cower-blind-updates/"* -maxdepth 0 -type d
     exit
@@ -88,6 +91,13 @@ dirs=$( find ${funDir}/* -maxdepth 0 -type d  2>/dev/null)
 
 
 
+for d in $dirs; do
+  ## change PKGEXT to .tar.xz ##
+  sudo su - ${builduser} -c "source /etc/profile; cd ${d}; sed -i 's#^PKGEXT.*#PKGEXT='\''.tar.xz'\''#g' ${d}/PKGBUILD" 
+  ##sed -i 's/^PKGEXT.*/PKGEXT=\'.tar.xz\'/g'"
+done
+
+
 # get all packages to build, also build them (with makepkg)
 #for d in ${funDir}/*; do
 srDirs=()
@@ -115,6 +125,7 @@ elif (( $mode == 2  )); then
   for d in $dirs; do
     if [ -z "$(ls "${d}"/*.tar.xz 2>/dev/null)" ]; then
 	srDirs+=("${d}")
+	[[ ${3,,} == "edit" ]] && sudo ${EDITOR} ${d}/PKGBUILD
 	sudo su - ${builduser} -c "source /etc/profile; cd ${d}; makepkg PKGBUILD"
 	instPkgs+=( "${d##*/}" )
 	instPkgsP+=( "${d}/${d##*/}*.tar.xz" )
