@@ -1,6 +1,8 @@
 #!/bin/bash
 
-touch ~/.bscripts/index.html
-find -L ~/.bscripts -maxdepth 1 -type f -name "*~" -exec rm -f {} +
-find -L ~/.bscripts -maxdepth 1 -type f -exec chmod 755 {} +
-chmod 666 ~/.bscripts/index.html
+[[ -n $@ ]] && [[ -d $@ ]] && path="$@" || path="${HOME}/.bscripts"
+
+touch     "${path}/index.html"
+find -L   "${path}" -maxdepth 1 -type f -name "*~" -exec rm -f {} +
+find -L   "${path}" -maxdepth 1 -type f -exec chmod 755 {} +
+chmod 666 "${path}/index.html"
