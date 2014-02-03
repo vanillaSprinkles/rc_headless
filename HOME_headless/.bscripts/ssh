@@ -1,7 +1,7 @@
 #!/bin/bash
 SSH=/usr/bin/ssh
 
-${SSH} ${@}
+${SSH} -o "ServerAliveInterval=60" ${@}
 
 echo -e "SSH to \"${@}\" END on $(${HOME}/.bscripts/datime)"
 

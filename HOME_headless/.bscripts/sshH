@@ -1,0 +1,6 @@
+#!/bin/bash
+SSH=/usr/bin/ssh
+
+${SSH} -o "UserKnownHostsFile /dev/null" -o "TCPKeepAlive=yes" -o "ServerAliveInterval=60"   ${@}
+
+echo -e "SSH to \"${@}\" END on $(${HOME}/.bscripts/datime)"
