@@ -112,9 +112,9 @@ fi
 
 
 if [ "${i}" == "xcompmgr" ] || [ "${i}" == "transset" ]; then
-    if (( 1 -lt $(pgrep "^e16$") )); then
-	exit
-    fi
+#    if (( 1 -lt $(pgrep "^e16$") )); then
+#	exit
+#    fi
     mkdir -p /tmp/bscripts
     echo 1 > /tmp/bscripts/screenAppz.xcompmgr
     while [ 1 ]; do
